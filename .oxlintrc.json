@@ -1,0 +1,52 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "ignorePatterns": ["next-env.d.ts"],
+  "plugins": ["typescript", "import", "unicorn", "react", "vitest"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error"
+  },
+  "rules": {
+    "max-lines": [
+      "error",
+      {
+        "max": 1000,
+        "skipComments": true,
+        "skipBlankLines": true
+      }
+    ],
+    "max-lines-per-function": [
+      "error",
+      {
+        "max": 400,
+        "skipComments": true,
+        "skipBlankLines": true
+      }
+    ],
+    "no-nested-ternary": "error",
+    "no-unneeded-ternary": "error",
+    "no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "regex": "^\\.\\./\\.\\./",
+            "message": "Use absolute imports with @/* alias instead of relative paths"
+          }
+        ]
+      }
+    ],
+    "typescript/no-explicit-any": "error",
+    "typescript/explicit-function-return-type": "warn",
+    "typescript/no-floating-promises": "off",
+    "typescript/unbound-method": "off",
+    "unicorn/prefer-node-protocol": "error",
+    "react/react-in-jsx-scope": "off",
+    "import/no-unassigned-import": [
+      "error",
+      {
+        "allow": ["**/*.css"]
+      }
+    ]
+  }
+}
