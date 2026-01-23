@@ -1,0 +1,44 @@
+name: CI
+
+on: [push, pull_request]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-web:
+    name: Check Web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install
+      - run: pnpm fmt --check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm build
+
+  check-contracts:
+    name: Check Contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: pnpm/action-setup@v4
+      - uses: foundry-rs/foundry-toolchain@v1
+      - run: pnpm install
+      - run: forge fmt --check
+        working-directory: contracts
+      - run: solhint 'contracts/src/**/*.sol'
+      - run: forge build
+        working-directory: contracts
+      - run: forge test
+        working-directory: contracts

@@ -10,6 +10,12 @@ The faucet is available at [faucet.sepolia.nillion.network](https://faucet.sepol
 
 If you're unsure where to start, head over to [docs.nillion.com](https://docs.nillion.com).
 
+## Dependencies
+
+- [Node.js](https://nodejs.org/) 24+
+- [pnpm](https://pnpm.io/) 10+
+- [Foundry](https://book.getfoundry.sh/) (for smart contracts)
+
 ## Development
 
 ```bash
@@ -18,6 +24,16 @@ pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to view the faucet locally.
+
+### Commands
+
+| Command              | Description                |
+|----------------------|----------------------------|
+| `pnpm dev`           | Start development server   |
+| `pnpm build`         | Build for production       |
+| `pnpm fix`           | Format and lint everything |
+| `pnpm fix:web`       | Format and lint web app    |
+| `pnpm fix:contracts` | Format and lint Solidity   |
 
 ## Contributing
 
