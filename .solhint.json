@@ -2,13 +2,12 @@
   "extends": "solhint:recommended",
   "rules": {
     "func-visibility": ["warn", { "ignoreConstructors": true }],
-    "compiler-version": ["error", "^0.8.0"],
     "max-line-length": ["warn", 120],
     "import-path-check": "off",
     "use-natspec": "off",
-    "gas-custom-errors": "warn",
-    "gas-indexed-events": "warn",
-    "gas-increment-by-one": "warn",
-    "immutable-vars-naming": "warn"
+    "gas-custom-errors": "error",
+    "gas-indexed-events": "error",
+    "gas-increment-by-one": "error",
+    "immutable-vars-naming": "error"
   }
 }

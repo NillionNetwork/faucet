@@ -11,22 +11,26 @@ import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol
 /// @custom:security-contact security@nillion.com
 contract NILFaucet is Ownable, Pausable, ReentrancyGuard {
     using SafeERC20 for IERC20;
-    IERC20 public immutable token;
+
+    error InvalidAddress();
+    error ClaimNotAllowed(string reason);
+
+    IERC20 public immutable TOKEN;
     uint256 public dripAmount; // token smallest units
     uint256 public cooldownSeconds; // seconds between claims per address
     mapping(address => uint256) public lastClaimAt;
     mapping(address => uint256) public claimCount;
 
-    event Claimed(address indexed claimer, uint256 amount);
-    event DripAmountUpdated(uint256 newAmount);
-    event CooldownUpdated(uint256 newCooldownSeconds);
-    event Withdrawn(address indexed to, uint256 amount);
+    event Claimed(address indexed claimer, uint256 indexed amount);
+    event DripAmountUpdated(uint256 indexed newAmount);
+    event CooldownUpdated(uint256 indexed newCooldownSeconds);
+    event Withdrawn(address indexed to, uint256 indexed amount);
 
     constructor(address tokenAddress, uint256 _dripAmount, uint256 _cooldownSeconds, address initialOwner)
         Ownable(initialOwner)
     {
-        require(tokenAddress != address(0), "BAD_TOKEN");
-        token = IERC20(tokenAddress);
+        if (tokenAddress == address(0)) revert InvalidAddress();
+        TOKEN = IERC20(tokenAddress);
         dripAmount = _dripAmount;
         cooldownSeconds = _cooldownSeconds;
     }
@@ -50,7 +54,7 @@ contract NILFaucet is Ownable, Pausable, ReentrancyGuard {
     }
 
     function faucetBalance() public view returns (uint256) {
-        return token.balanceOf(address(this));
+        return TOKEN.balanceOf(address(this));
     }
 
     function canClaim(address user) public view returns (bool ok, string memory reason) {
@@ -69,16 +73,16 @@ contract NILFaucet is Ownable, Pausable, ReentrancyGuard {
 
     function claim() external whenNotPaused nonReentrant {
         (bool ok, string memory reason) = canClaim(msg.sender);
-        require(ok, reason);
+        if (!ok) revert ClaimNotAllowed(reason);
         lastClaimAt[msg.sender] = block.timestamp;
-        claimCount[msg.sender] += 1;
-        token.safeTransfer(msg.sender, dripAmount);
+        ++claimCount[msg.sender];
+        TOKEN.safeTransfer(msg.sender, dripAmount);
         emit Claimed(msg.sender, dripAmount);
     }
 
     function withdraw(address to, uint256 amount) external onlyOwner nonReentrant {
-        require(to != address(0), "BAD_TO");
-        token.safeTransfer(to, amount);
+        if (to == address(0)) revert InvalidAddress();
+        TOKEN.safeTransfer(to, amount);
         emit Withdrawn(to, amount);
     }
 }
