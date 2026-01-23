@@ -37,7 +37,7 @@ jobs:
       - run: pnpm install
       - run: forge fmt --check
         working-directory: contracts
-      - run: solhint 'contracts/src/**/*.sol'
+      - run: pnpm exec solhint 'contracts/src/**/*.sol'
       - run: forge build
         working-directory: contracts
       - run: forge test

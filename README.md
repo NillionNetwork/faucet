@@ -28,7 +28,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the faucet locally.
 ### Commands
 
 | Command              | Description                |
-|----------------------|----------------------------|
+| -------------------- | -------------------------- |
 | `pnpm dev`           | Start development server   |
 | `pnpm build`         | Build for production       |
 | `pnpm fix`           | Format and lint everything |
