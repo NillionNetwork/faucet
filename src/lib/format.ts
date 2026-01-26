@@ -14,12 +14,20 @@ export function formatTimeRemaining(seconds: number): string {
 
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
 
   if (hours > 0) {
-    return `${hours}h ${minutes}m`;
+    const hourLabel = hours === 1 ? "hour" : "hours";
+    if (minutes > 0) {
+      const minLabel = minutes === 1 ? "minute" : "minutes";
+      return `${hours} ${hourLabel} ${minutes} ${minLabel}`;
+    }
+    return `${hours} ${hourLabel}`;
   }
   if (minutes > 0) {
-    return `${minutes}m`;
+    const minLabel = minutes === 1 ? "minute" : "minutes";
+    return `${minutes} ${minLabel}`;
   }
-  return `${seconds}s`;
+  const secLabel = secs === 1 ? "second" : "seconds";
+  return `${secs} ${secLabel}`;
 }

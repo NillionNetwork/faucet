@@ -33,11 +33,12 @@ export function useClaim(onSuccess?: () => void): UseClaimResult {
   } = useWriteContract();
 
   const {
-    isLoading: isConfirming,
+    isPending: isConfirming,
     isSuccess,
     error: receiptError,
   } = useWaitForTransactionReceipt({
     hash: txHash,
+    pollingInterval: 1_000, // Poll every 1 second
   });
 
   // Determine status
@@ -46,7 +47,7 @@ export function useClaim(onSuccess?: () => void): UseClaimResult {
     status = "error";
   } else if (isSuccess) {
     status = "success";
-  } else if (isConfirming) {
+  } else if (txHash && isConfirming) {
     status = "pending";
   } else if (isWritePending) {
     status = "confirming";

@@ -150,7 +150,7 @@ function BalanceHero(): React.JSX.Element {
   const { userBalance, isLoading, chainName } = useFaucetStatus();
 
   return (
-    <div className="text-center py-2">
+    <div className="text-center">
       <p className="text-sm text-muted-foreground mb-1">Your NIL balance on the {chainName} network</p>
       {isLoading ? (
         <Loader2 className="w-6 h-6 animate-spin text-muted-foreground mx-auto" />
@@ -161,27 +161,15 @@ function BalanceHero(): React.JSX.Element {
   );
 }
 
-function FaucetParams(): React.JSX.Element {
-  const { dripAmount, cooldownSeconds } = useFaucetStatus();
-
-  const drip = dripAmount ? `${formatNilAmount(dripAmount)} NIL` : "...";
-  const cooldown = cooldownSeconds ? formatTimeRemaining(Number(cooldownSeconds)) : "...";
-
-  return (
-    <p className="text-sm text-muted-foreground text-center">
-      Drip: {drip} • Cooldown: {cooldown}
-    </p>
-  );
-}
-
 function FaucetDetails(): React.JSX.Element {
-  const { lastClaimAt, claimCount, faucetAddress, tokenAddress, explorerUrl } = useFaucetStatus();
+  const { dripAmount, cooldownSeconds, lastClaimAt, claimCount, faucetAddress, tokenAddress, explorerUrl } =
+    useFaucetStatus();
   const [isOpen, setIsOpen] = useState(false);
 
   if (!faucetAddress) return <></>;
 
   return (
-    <div className="border-t border-border/50 pt-3">
+    <div className="pt-3">
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors w-full"
@@ -191,6 +179,14 @@ function FaucetDetails(): React.JSX.Element {
       </button>
       {isOpen && (
         <div className="mt-3 pl-5 flex flex-col gap-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Drip amount</span>
+            <span>{dripAmount ? `${formatNilAmount(dripAmount)} NIL` : "..."}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Cooldown</span>
+            <span>{cooldownSeconds ? formatTimeRemaining(Number(cooldownSeconds)) : "..."}</span>
+          </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Times claimed</span>
             <span>{claimCount !== undefined ? String(claimCount) : "..."}</span>
@@ -255,10 +251,9 @@ export function FaucetCard(): React.JSX.Element {
 
   return (
     <Card className="w-full px-6 py-8">
-      <CardContent className="flex flex-col gap-4">
+      <CardContent className="flex flex-col gap-3">
         <BalanceHero />
         <ClaimButton />
-        <FaucetParams />
         <FaucetDetails />
       </CardContent>
     </Card>
