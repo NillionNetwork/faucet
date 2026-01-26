@@ -53,17 +53,19 @@ export const FAUCET_ABI = [
   },
 ] as const;
 
+function isHexAddress(value: string | undefined): value is `0x${string}` {
+  return typeof value === "string" && /^0x[a-fA-F0-9]{40}$/.test(value);
+}
+
 // Contract addresses per chain - loaded from environment
 function getFaucetAddress(chainId: number): `0x${string}` | undefined {
   if (chainId === 11155111) {
-    // Sepolia
     const addr = process.env.NEXT_PUBLIC_FAUCET_ADDRESS_SEPOLIA;
-    return addr as `0x${string}` | undefined;
+    return isHexAddress(addr) ? addr : undefined;
   }
   if (chainId === 31337) {
-    // Anvil
     const addr = process.env.NEXT_PUBLIC_FAUCET_ADDRESS_ANVIL;
-    return addr as `0x${string}` | undefined;
+    return isHexAddress(addr) ? addr : undefined;
   }
   return undefined;
 }

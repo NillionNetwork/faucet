@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "ignorePatterns": ["next-env.d.ts"],
+  "ignorePatterns": ["next-env.d.ts", "contracts/"],
   "plugins": ["typescript", "import", "unicorn", "react", "vitest"],
   "categories": {
     "correctness": "error",
