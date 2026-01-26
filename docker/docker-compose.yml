@@ -1,0 +1,12 @@
+name: faucet
+
+services:
+  nil-anvil:
+    image: ghcr.io/nillionnetwork/nil-anvil:main
+    ports:
+      - "8545:8545"
+    healthcheck:
+      test: ["CMD", "cast", "chain-id", "--rpc-url", "http://localhost:8545"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
