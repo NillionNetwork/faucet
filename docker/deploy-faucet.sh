@@ -17,7 +17,7 @@ RPC_URL="http://localhost:8545"
 NIL_TOKEN="0x5FbDB2315678afecb367f032d93F642f64180aa3"
 
 # Faucet config
-DRIP_AMOUNT="100000000"  # 100 NIL (6 decimals)
+DRIP_AMOUNT="1000000"  # 1 NIL (6 decimals)
 COOLDOWN="60"            # 60 seconds for local dev (not 24h)
 FUND_AMOUNT="10000000000" # 10K NIL to fund the faucet (6 decimals)
 
