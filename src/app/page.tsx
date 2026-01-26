@@ -1,7 +1,7 @@
 "use client";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { Droplets } from "lucide-react";
+import Image from "next/image";
 
 import { FaucetCard } from "./components/FaucetCard";
 
@@ -12,9 +12,7 @@ export default function Home(): React.JSX.Element {
         <ConnectButton showBalance={false} />
       </header>
       <div className="flex flex-col items-center gap-6 max-w-md text-center">
-        <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-primary text-primary-foreground">
-          <Droplets className="w-8 h-8" />
-        </div>
+        <Image src="/nillion.jpg" alt="Nillion" width={64} height={64} className="rounded-2xl" />
         <h1 className="text-4xl font-bold tracking-tight">Nillion Faucet</h1>
         <p className="text-muted-foreground text-lg">
           Request testnet NIL tokens for development and testing on the Nillion network.
