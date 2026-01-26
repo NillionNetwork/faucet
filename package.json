@@ -11,18 +11,25 @@
     "typecheck": "pnpm tsgo -b tsconfig.json",
     "fix:web": "pnpm fmt && pnpm lint && pnpm typecheck",
     "fix:contracts": "forge fmt --root contracts && solhint 'contracts/src/**/*.sol'",
-    "fix": "pnpm fix:web && pnpm fix:contracts"
+    "fix": "pnpm fix:web && pnpm fix:contracts",
+    "docker:up": "docker compose -f docker/docker-compose.yml up -d",
+    "docker:down": "docker compose -f docker/docker-compose.yml down",
+    "docker:deploy": "./docker/deploy-faucet.sh"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.4",
+    "@rainbow-me/rainbowkit": "^2.2.10",
+    "@tanstack/react-query": "^5.90.20",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.563.0",
     "next": "16.1.4",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "sonner": "^2.0.7",
     "tailwind-merge": "^3.4.0",
-    "viem": "^2.44.4"
+    "viem": "^2.44.4",
+    "wagmi": "^3.4.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
