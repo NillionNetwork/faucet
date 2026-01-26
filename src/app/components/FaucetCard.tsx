@@ -3,7 +3,7 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { AlertCircle, CheckCircle2, ChevronRight, Clock, ExternalLink, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useAccount } from "wagmi";
+import { useConnection } from "wagmi";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
@@ -232,7 +232,7 @@ function FaucetDetails(): React.JSX.Element {
 }
 
 export function FaucetCard(): React.JSX.Element {
-  const { isConnected } = useAccount();
+  const { isConnected } = useConnection();
 
   if (!isConnected) {
     return (

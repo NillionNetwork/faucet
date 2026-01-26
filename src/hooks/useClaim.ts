@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { useAccount, useChainId, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
+import { useConnection, useChainId, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 
 import { FAUCET_ABI, getFaucetConfig } from "@/lib/contracts";
 
@@ -17,7 +17,7 @@ export interface UseClaimResult {
 }
 
 export function useClaim(onSuccess?: () => void): UseClaimResult {
-  const { address } = useAccount();
+  const { address } = useConnection();
   const chainId = useChainId();
   const { address: faucetAddress, explorerUrl } = getFaucetConfig(chainId);
 

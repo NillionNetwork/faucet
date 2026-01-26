@@ -2,12 +2,12 @@
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Image from "next/image";
-import { useAccount } from "wagmi";
+import { useConnection } from "wagmi";
 
 import { FaucetCard } from "./components/FaucetCard";
 
 export default function Home(): React.JSX.Element {
-  const { isConnected } = useAccount();
+  const { isConnected } = useConnection();
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8">
