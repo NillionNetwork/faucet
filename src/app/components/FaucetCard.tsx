@@ -159,7 +159,7 @@ function FaucetInfo(): React.JSX.Element {
       </div>
       <div>
         <p className="text-muted-foreground">Cooldown</p>
-        <p className="font-medium">{cooldownSeconds ? `${Number(cooldownSeconds) / 3600}h` : "..."}</p>
+        <p className="font-medium">{cooldownSeconds ? formatTimeRemaining(Number(cooldownSeconds)) : "..."}</p>
       </div>
       <div className="col-span-2">
         <p className="text-muted-foreground">Faucet Balance</p>

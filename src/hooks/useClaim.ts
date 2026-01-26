@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useAccount, useChainId, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 
@@ -22,6 +22,7 @@ export function useClaim(onSuccess?: () => void): UseClaimResult {
   const { address: faucetAddress, explorerUrl } = getFaucetConfig(chainId);
 
   const [error, setError] = useState<Error | null>(null);
+  const toastShownForTx = useRef<string | null>(null);
 
   const {
     writeContract,
@@ -51,9 +52,10 @@ export function useClaim(onSuccess?: () => void): UseClaimResult {
     status = "confirming";
   }
 
-  // Show toast on success
+  // Show toast on success (only once per transaction)
   useEffect(() => {
-    if (isSuccess && txHash) {
+    if (isSuccess && txHash && toastShownForTx.current !== txHash) {
+      toastShownForTx.current = txHash;
       const txUrl = `${explorerUrl}/tx/${txHash}`;
       toast.success("Claim successful!", {
         description: "NIL tokens have been sent to your wallet.",
