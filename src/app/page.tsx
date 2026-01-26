@@ -9,7 +9,7 @@ export default function Home(): React.JSX.Element {
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8">
       <header className="absolute top-4 right-4">
-        <ConnectButton />
+        <ConnectButton showBalance={false} />
       </header>
       <div className="flex flex-col items-center gap-6 max-w-md text-center">
         <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-primary text-primary-foreground">
