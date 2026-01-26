@@ -24,22 +24,19 @@ export function useClaim(onSuccess?: () => void): UseClaimResult {
   const [error, setError] = useState<Error | null>(null);
   const toastShownForTx = useRef<string | null>(null);
 
-  const {
-    writeContract,
-    data: txHash,
-    isPending: isWritePending,
-    reset: resetWrite,
-    error: writeError,
-  } = useWriteContract();
+  const write = useWriteContract();
+  const txHash = write.data;
+  const isWritePending = write.isPending;
+  const writeError = write.error;
 
-  const {
-    isPending: isConfirming,
-    isSuccess,
-    error: receiptError,
-  } = useWaitForTransactionReceipt({
+  const receipt = useWaitForTransactionReceipt({
     hash: txHash,
-    pollingInterval: 1_000, // Poll every 1 second
+    pollingInterval: 1_000,
   });
+
+  const isConfirming = receipt.isPending;
+  const isSuccess = receipt.isSuccess;
+  const receiptError = receipt.error;
 
   // Determine status
   let status: ClaimStatus = "idle";
@@ -75,7 +72,6 @@ export function useClaim(onSuccess?: () => void): UseClaimResult {
   useEffect(() => {
     const err = writeError || receiptError || error;
     if (err) {
-      // Check if user rejected
       const isRejection = err.message?.includes("User rejected") || err.message?.includes("user rejected");
       if (!isRejection) {
         toast.error("Claim failed", {
@@ -89,17 +85,17 @@ export function useClaim(onSuccess?: () => void): UseClaimResult {
     if (!address || !faucetAddress) return;
 
     setError(null);
-    writeContract({
+    write.mutate({
       address: faucetAddress,
       abi: FAUCET_ABI,
       functionName: "claim",
     });
-  }, [address, faucetAddress, writeContract]);
+  }, [address, faucetAddress, write]);
 
   const reset = useCallback((): void => {
-    resetWrite();
+    write.reset();
     setError(null);
-  }, [resetWrite]);
+  }, [write]);
 
   return {
     claim,

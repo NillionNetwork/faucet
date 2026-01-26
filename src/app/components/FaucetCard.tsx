@@ -3,7 +3,7 @@
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { AlertCircle, CheckCircle2, ChevronRight, Clock, ExternalLink, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useConnection } from "wagmi";
+import { useChainId, useConnection } from "wagmi";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
@@ -11,10 +11,13 @@ import { useClaim } from "@/hooks/useClaim";
 import { useFaucetStatus } from "@/hooks/useFaucetStatus";
 import { formatNilAmount, formatTimeRemaining } from "@/lib/format";
 
+const ANVIL_CHAIN_ID = 31337;
+
 function ClaimButton(): React.JSX.Element {
+  const chainId = useChainId();
   const { canClaim, claimBlockedReason, timeUntilClaimable, dripAmount, refetch, explorerUrl, faucetAddress } =
     useFaucetStatus();
-  const { claim, status, txHash, reset } = useClaim(() => refetch());
+  const { claim, status, txHash } = useClaim(() => refetch());
 
   // Countdown timer for cooldown
   const [countdown, setCountdown] = useState(timeUntilClaimable);
@@ -30,6 +33,20 @@ function ClaimButton(): React.JSX.Element {
     }, 1000);
     return (): void => clearInterval(timer);
   }, [countdown]);
+
+  // Refetch when cooldown ends to update canClaim
+  useEffect(() => {
+    if (countdown === 0 && claimBlockedReason === "COOLDOWN") {
+      console.log("[ClaimButton] Cooldown ended, refetching...");
+      refetch();
+    }
+  }, [countdown, claimBlockedReason, refetch]);
+
+  // On Anvil, block.timestamp doesn't advance until a tx is mined, so the contract's
+  // canClaim may stay false even after the real cooldown ends. We override this on
+  // Anvil only (where gas is free), but not on real networks where reverts cost ETH.
+  const isAnvil = chainId === ANVIL_CHAIN_ID;
+  const effectiveCanClaim = canClaim || (isAnvil && claimBlockedReason === "COOLDOWN" && countdown === 0);
 
   // No faucet address configured
   if (!faucetAddress) {
@@ -62,9 +79,6 @@ function ClaimButton(): React.JSX.Element {
           View transaction
           <ExternalLink className="w-3 h-3" />
         </a>
-        <Button variant="outline" onClick={reset} className="mt-2">
-          Claim again
-        </Button>
       </div>
     );
   }
@@ -96,7 +110,6 @@ function ClaimButton(): React.JSX.Element {
           <Clock className="w-4 h-4" />
           Cooldown: {formatTimeRemaining(countdown)}
         </Button>
-        <p className="text-xs text-muted-foreground">You can claim again in {formatTimeRemaining(countdown)}</p>
       </div>
     );
   }
@@ -130,7 +143,7 @@ function ClaimButton(): React.JSX.Element {
   const dripDisplay = dripAmount ? formatNilAmount(dripAmount) : "...";
 
   return (
-    <Button onClick={claim} disabled={!canClaim} className="w-full">
+    <Button onClick={claim} disabled={!effectiveCanClaim} className="w-full">
       Claim {dripDisplay} NIL
     </Button>
   );
@@ -151,7 +164,7 @@ function BalanceHero(): React.JSX.Element {
 
   return (
     <div className="text-center">
-      <p className="text-sm text-muted-foreground mb-1">Your NIL balance on the {chainName} network</p>
+      <p className="text-sm text-muted-foreground mb-1">Your balance on {chainName}</p>
       {isLoading ? (
         <Loader2 className="w-6 h-6 animate-spin text-muted-foreground mx-auto" />
       ) : (
