@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Source .env if it exists (for DEV_WALLET)
+ENV_FILE="$(dirname "$0")/../.env"
+if [ -f "$ENV_FILE" ]; then
+  # shellcheck disable=SC1090
+  source "$ENV_FILE"
+fi
+
 # Anvil default account 0
 PRIVATE_KEY="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 DEPLOYER="0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
@@ -49,10 +56,23 @@ cast send "$NIL_TOKEN" "transfer(address,uint256)" "$FAUCET_ADDRESS" "$FUND_AMOU
 BALANCE=$(cast call "$FAUCET_ADDRESS" "faucetBalance()(uint256)" --rpc-url "$RPC_URL")
 echo "Faucet balance: $BALANCE (smallest units)"
 
+# Fund dev wallet with ETH if DEV_WALLET is set
+if [ -n "${DEV_WALLET:-}" ]; then
+  echo "Funding dev wallet $DEV_WALLET with 10 ETH..."
+  cast send "$DEV_WALLET" --value 10ether \
+    --rpc-url "$RPC_URL" \
+    --private-key "$PRIVATE_KEY" \
+    >/dev/null
+  echo "Dev wallet funded"
+fi
+
 echo ""
 echo "=========================================="
 echo "Faucet ready!"
 echo "  Faucet address:     $FAUCET_ADDRESS"
 echo "  NIL token address:  $NIL_TOKEN"
 echo "  RPC:                $RPC_URL"
+if [ -n "${DEV_WALLET:-}" ]; then
+  echo "  Dev wallet:         $DEV_WALLET (funded with 10 ETH)"
+fi
 echo "=========================================="
