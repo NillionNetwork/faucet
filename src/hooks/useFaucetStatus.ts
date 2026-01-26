@@ -2,14 +2,15 @@
 
 import { useAccount, useChainId, useReadContracts } from "wagmi";
 
-import { FAUCET_ABI, getFaucetConfig } from "@/lib/contracts";
+import { ERC20_ABI, FAUCET_ABI, getFaucetConfig } from "@/lib/contracts";
 
 export interface FaucetStatus {
   // Contract state
   dripAmount: bigint | undefined;
   cooldownSeconds: bigint | undefined;
-  faucetBalance: bigint | undefined;
   lastClaimAt: bigint | undefined;
+  claimCount: bigint | undefined;
+  userBalance: bigint | undefined;
 
   // Claim eligibility
   canClaim: boolean;
@@ -26,6 +27,7 @@ export interface FaucetStatus {
 
   // Config
   faucetAddress: `0x${string}` | undefined;
+  tokenAddress: `0x${string}` | undefined;
   explorerUrl: string;
 }
 
@@ -33,7 +35,7 @@ export function useFaucetStatus(): FaucetStatus {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
 
-  const { address: faucetAddress, explorerUrl } = getFaucetConfig(chainId);
+  const { address: faucetAddress, tokenAddress, explorerUrl } = getFaucetConfig(chainId);
 
   const { data, isLoading, isError, refetch } = useReadContracts({
     contracts: [
@@ -50,18 +52,25 @@ export function useFaucetStatus(): FaucetStatus {
       {
         address: faucetAddress,
         abi: FAUCET_ABI,
-        functionName: "faucetBalance",
-      },
-      {
-        address: faucetAddress,
-        abi: FAUCET_ABI,
         functionName: "lastClaimAt",
         args: address ? [address] : undefined,
       },
       {
         address: faucetAddress,
         abi: FAUCET_ABI,
+        functionName: "claimCount",
+        args: address ? [address] : undefined,
+      },
+      {
+        address: faucetAddress,
+        abi: FAUCET_ABI,
         functionName: "canClaim",
+        args: address ? [address] : undefined,
+      },
+      {
+        address: tokenAddress,
+        abi: ERC20_ABI,
+        functionName: "balanceOf",
         args: address ? [address] : undefined,
       },
     ],
@@ -71,12 +80,14 @@ export function useFaucetStatus(): FaucetStatus {
     },
   });
 
-  const [dripAmountResult, cooldownResult, balanceResult, lastClaimResult, canClaimResult] = data ?? [];
+  const [dripAmountResult, cooldownResult, lastClaimResult, claimCountResult, canClaimResult, userBalanceResult] =
+    data ?? [];
 
   const dripAmount = dripAmountResult?.result;
   const cooldownSeconds = cooldownResult?.result;
-  const faucetBalance = balanceResult?.result;
   const lastClaimAt = lastClaimResult?.result;
+  const claimCount = claimCountResult?.result;
+  const userBalance = userBalanceResult?.result;
   const canClaimResultValue = canClaimResult?.result;
   const canClaimOk = Array.isArray(canClaimResultValue) ? canClaimResultValue[0] : false;
   const canClaimReason = Array.isArray(canClaimResultValue) ? canClaimResultValue[1] : "";
@@ -90,8 +101,9 @@ export function useFaucetStatus(): FaucetStatus {
   return {
     dripAmount,
     cooldownSeconds,
-    faucetBalance,
     lastClaimAt,
+    claimCount,
+    userBalance,
     canClaim: canClaimOk,
     claimBlockedReason: canClaimOk ? null : canClaimReason || null,
     cooldownEndsAt,
@@ -100,6 +112,7 @@ export function useFaucetStatus(): FaucetStatus {
     isError,
     refetch,
     faucetAddress,
+    tokenAddress,
     explorerUrl,
   };
 }

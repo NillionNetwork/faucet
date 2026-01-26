@@ -136,8 +136,28 @@ function ClaimButton(): React.JSX.Element {
   );
 }
 
+function formatLastClaimed(timestamp: bigint): string {
+  if (timestamp === BigInt(0)) return "Never";
+  const date = new Date(Number(timestamp) * 1000);
+  return date.toLocaleString();
+}
+
+function truncateAddress(address: string): string {
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
 function FaucetInfo(): React.JSX.Element {
-  const { faucetBalance, dripAmount, cooldownSeconds, isLoading, faucetAddress } = useFaucetStatus();
+  const {
+    dripAmount,
+    cooldownSeconds,
+    userBalance,
+    lastClaimAt,
+    claimCount,
+    isLoading,
+    faucetAddress,
+    tokenAddress,
+    explorerUrl,
+  } = useFaucetStatus();
 
   if (!faucetAddress) {
     return <></>;
@@ -152,18 +172,50 @@ function FaucetInfo(): React.JSX.Element {
   }
 
   return (
-    <div className="grid grid-cols-2 gap-4 text-sm">
-      <div>
-        <p className="text-muted-foreground">Drip Amount</p>
-        <p className="font-medium">{dripAmount ? `${formatNilAmount(dripAmount)} NIL` : "..."}</p>
+    <div className="flex flex-col gap-4 text-sm">
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <p className="text-muted-foreground">Drip Amount</p>
+          <p className="font-medium">{dripAmount ? `${formatNilAmount(dripAmount)} NIL` : "..."}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground">Cooldown</p>
+          <p className="font-medium">{cooldownSeconds ? formatTimeRemaining(Number(cooldownSeconds)) : "..."}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground">Your Balance</p>
+          <p className="font-medium">{userBalance !== undefined ? `${formatNilAmount(userBalance)} NIL` : "..."}</p>
+        </div>
+        <div>
+          <p className="text-muted-foreground">Times Claimed</p>
+          <p className="font-medium">{claimCount !== undefined ? String(claimCount) : "..."}</p>
+        </div>
+        <div className="col-span-2">
+          <p className="text-muted-foreground">Last Claimed</p>
+          <p className="font-medium">{lastClaimAt !== undefined ? formatLastClaimed(lastClaimAt) : "..."}</p>
+        </div>
       </div>
-      <div>
-        <p className="text-muted-foreground">Cooldown</p>
-        <p className="font-medium">{cooldownSeconds ? formatTimeRemaining(Number(cooldownSeconds)) : "..."}</p>
-      </div>
-      <div className="col-span-2">
-        <p className="text-muted-foreground">Faucet Balance</p>
-        <p className="font-medium">{faucetBalance !== undefined ? `${formatNilAmount(faucetBalance)} NIL` : "..."}</p>
+      <div className="flex gap-4 text-xs text-muted-foreground border-t pt-3">
+        <a
+          href={`${explorerUrl}/address/${faucetAddress}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+        >
+          Faucet: {truncateAddress(faucetAddress)}
+          <ExternalLink className="w-3 h-3" />
+        </a>
+        {tokenAddress && (
+          <a
+            href={`${explorerUrl}/address/${tokenAddress}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+          >
+            NIL: {truncateAddress(tokenAddress)}
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        )}
       </div>
     </div>
   );
