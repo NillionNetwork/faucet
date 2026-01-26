@@ -1,12 +1,12 @@
 "use client";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { AlertCircle, CheckCircle2, Clock, ExternalLink, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, ChevronRight, Clock, ExternalLink, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { useClaim } from "@/hooks/useClaim";
 import { useFaucetStatus } from "@/hooks/useFaucetStatus";
 import { formatNilAmount, formatTimeRemaining } from "@/lib/format";
@@ -146,77 +146,87 @@ function truncateAddress(address: string): string {
   return `${address.slice(0, 6)}...${address.slice(-4)}`;
 }
 
-function FaucetInfo(): React.JSX.Element {
-  const {
-    dripAmount,
-    cooldownSeconds,
-    userBalance,
-    lastClaimAt,
-    claimCount,
-    isLoading,
-    faucetAddress,
-    tokenAddress,
-    explorerUrl,
-  } = useFaucetStatus();
-
-  if (!faucetAddress) {
-    return <></>;
-  }
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-4">
-        <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
+function BalanceHero(): React.JSX.Element {
+  const { userBalance, isLoading, chainName } = useFaucetStatus();
 
   return (
-    <div className="flex flex-col gap-4 text-sm">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <p className="text-muted-foreground">Drip Amount</p>
-          <p className="font-medium">{dripAmount ? `${formatNilAmount(dripAmount)} NIL` : "..."}</p>
+    <div className="text-center py-2">
+      <p className="text-sm text-muted-foreground mb-1">Your NIL balance on the {chainName} network</p>
+      {isLoading ? (
+        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground mx-auto" />
+      ) : (
+        <p className="text-3xl font-bold">{userBalance !== undefined ? formatNilAmount(userBalance) : "0"} NIL</p>
+      )}
+    </div>
+  );
+}
+
+function FaucetParams(): React.JSX.Element {
+  const { dripAmount, cooldownSeconds } = useFaucetStatus();
+
+  const drip = dripAmount ? `${formatNilAmount(dripAmount)} NIL` : "...";
+  const cooldown = cooldownSeconds ? formatTimeRemaining(Number(cooldownSeconds)) : "...";
+
+  return (
+    <p className="text-sm text-muted-foreground text-center">
+      Drip: {drip} • Cooldown: {cooldown}
+    </p>
+  );
+}
+
+function FaucetDetails(): React.JSX.Element {
+  const { lastClaimAt, claimCount, faucetAddress, tokenAddress, explorerUrl } = useFaucetStatus();
+  const [isOpen, setIsOpen] = useState(false);
+
+  if (!faucetAddress) return <></>;
+
+  return (
+    <div className="border-t border-border/50 pt-3">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors w-full"
+      >
+        <ChevronRight className={`w-4 h-4 transition-transform ${isOpen ? "rotate-90" : ""}`} />
+        Details
+      </button>
+      {isOpen && (
+        <div className="mt-3 pl-5 flex flex-col gap-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Times claimed</span>
+            <span>{claimCount !== undefined ? String(claimCount) : "..."}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Last claimed</span>
+            <span>{lastClaimAt !== undefined ? formatLastClaimed(lastClaimAt) : "..."}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Faucet contract</span>
+            <a
+              href={`${explorerUrl}/address/${faucetAddress}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+            >
+              {truncateAddress(faucetAddress)}
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+          {tokenAddress && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">NIL token contract</span>
+              <a
+                href={`${explorerUrl}/address/${tokenAddress}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+              >
+                {truncateAddress(tokenAddress)}
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+          )}
         </div>
-        <div>
-          <p className="text-muted-foreground">Cooldown</p>
-          <p className="font-medium">{cooldownSeconds ? formatTimeRemaining(Number(cooldownSeconds)) : "..."}</p>
-        </div>
-        <div>
-          <p className="text-muted-foreground">Your Balance</p>
-          <p className="font-medium">{userBalance !== undefined ? `${formatNilAmount(userBalance)} NIL` : "..."}</p>
-        </div>
-        <div>
-          <p className="text-muted-foreground">Times Claimed</p>
-          <p className="font-medium">{claimCount !== undefined ? String(claimCount) : "..."}</p>
-        </div>
-        <div className="col-span-2">
-          <p className="text-muted-foreground">Last Claimed</p>
-          <p className="font-medium">{lastClaimAt !== undefined ? formatLastClaimed(lastClaimAt) : "..."}</p>
-        </div>
-      </div>
-      <div className="flex gap-4 text-xs text-muted-foreground border-t pt-3">
-        <a
-          href={`${explorerUrl}/address/${faucetAddress}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
-        >
-          Faucet: {truncateAddress(faucetAddress)}
-          <ExternalLink className="w-3 h-3" />
-        </a>
-        {tokenAddress && (
-          <a
-            href={`${explorerUrl}/address/${tokenAddress}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
-          >
-            NIL: {truncateAddress(tokenAddress)}
-            <ExternalLink className="w-3 h-3" />
-          </a>
-        )}
-      </div>
+      )}
     </div>
   );
 }
@@ -224,14 +234,13 @@ function FaucetInfo(): React.JSX.Element {
 export function FaucetCard(): React.JSX.Element {
   const { isConnected } = useAccount();
 
-  return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Request Tokens</CardTitle>
-        <CardDescription>Connect your wallet to claim testnet NIL tokens.</CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        {!isConnected ? (
+  if (!isConnected) {
+    return (
+      <Card className="w-full px-6 py-8">
+        <CardHeader>
+          <CardDescription>Connect your wallet to claim testnet NIL tokens</CardDescription>
+        </CardHeader>
+        <CardContent>
           <ConnectButton.Custom>
             {({ openConnectModal }): React.JSX.Element => (
               <Button onClick={openConnectModal} className="w-full">
@@ -239,12 +248,18 @@ export function FaucetCard(): React.JSX.Element {
               </Button>
             )}
           </ConnectButton.Custom>
-        ) : (
-          <>
-            <FaucetInfo />
-            <ClaimButton />
-          </>
-        )}
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="w-full px-6 py-8">
+      <CardContent className="flex flex-col gap-4">
+        <BalanceHero />
+        <ClaimButton />
+        <FaucetParams />
+        <FaucetDetails />
       </CardContent>
     </Card>
   );

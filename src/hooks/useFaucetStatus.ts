@@ -1,6 +1,6 @@
 "use client";
 
-import { useAccount, useChainId, useReadContracts } from "wagmi";
+import { useAccount, useChainId, useChains, useReadContracts } from "wagmi";
 
 import { ERC20_ABI, FAUCET_ABI, getFaucetConfig } from "@/lib/contracts";
 
@@ -29,12 +29,15 @@ export interface FaucetStatus {
   faucetAddress: `0x${string}` | undefined;
   tokenAddress: `0x${string}` | undefined;
   explorerUrl: string;
+  chainName: string;
 }
 
 export function useFaucetStatus(): FaucetStatus {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
+  const chains = useChains();
 
+  const chainName = chains.find((c) => c.id === chainId)?.name ?? "Unknown";
   const { address: faucetAddress, tokenAddress, explorerUrl } = getFaucetConfig(chainId);
 
   const { data, isLoading, isError, refetch } = useReadContracts({
@@ -114,5 +117,6 @@ export function useFaucetStatus(): FaucetStatus {
     faucetAddress,
     tokenAddress,
     explorerUrl,
+    chainName,
   };
 }

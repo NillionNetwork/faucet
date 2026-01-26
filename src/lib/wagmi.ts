@@ -3,7 +3,8 @@ import { anvil, sepolia } from "wagmi/chains";
 
 const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "PLACEHOLDER_PROJECT_ID";
 
-export const chains = [sepolia, anvil] as const;
+const isDev = process.env.NODE_ENV === "development";
+export const chains = isDev ? ([sepolia, anvil] as const) : ([sepolia] as const);
 
 export const config = getDefaultConfig({
   appName: "Nillion Faucet",

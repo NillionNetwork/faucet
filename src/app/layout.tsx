@@ -8,7 +8,11 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Nillion Faucet",
-  description: "Request testnet NIL tokens for development and testing.",
+  description: "Get NIL for development and testing.",
+  icons: {
+    icon: "/nillion.jpg",
+    apple: "/nillion.jpg",
+  },
 };
 
 export default function RootLayout({
