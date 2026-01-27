@@ -75,12 +75,6 @@ export const ERC20_ABI = [
 
 const SEPOLIA_CHAIN_ID = 11155111;
 
-// NIL token addresses per chain
-const NIL_TOKEN_ADDRESSES: Record<number, `0x${string}`> = {
-  [ANVIL_CHAIN_ID]: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
-  [SEPOLIA_CHAIN_ID]: "0x7cf9a80db3b29ee8efe3710aadb7b95270572d47"
-};
-
 function isHexAddress(value: string | undefined): value is `0x${string}` {
   return typeof value === "string" && /^0x[a-fA-F0-9]{40}$/.test(value);
 }
@@ -100,11 +94,9 @@ function getFaucetAddress(chainId: number): `0x${string}` | undefined {
 
 export function getFaucetConfig(chainId: number): {
   address: `0x${string}` | undefined;
-  tokenAddress: `0x${string}` | undefined;
   explorerUrl: string;
 } {
   const address = getFaucetAddress(chainId);
-  const tokenAddress = NIL_TOKEN_ADDRESSES[chainId];
 
   const explorerUrls: Record<number, string> = {
     [SEPOLIA_CHAIN_ID]: "https://sepolia.etherscan.io",
@@ -113,7 +105,6 @@ export function getFaucetConfig(chainId: number): {
 
   return {
     address,
-    tokenAddress,
     explorerUrl: explorerUrls[chainId] || "https://etherscan.io",
   };
 }

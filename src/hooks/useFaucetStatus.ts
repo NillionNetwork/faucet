@@ -1,6 +1,6 @@
 "use client";
 
-import { useConnection, useChainId, useChains, useReadContracts } from "wagmi";
+import { useConnection, useChainId, useChains, useReadContract, useReadContracts } from "wagmi";
 
 import { ERC20_ABI, FAUCET_ABI, getFaucetConfig } from "@/lib/contracts";
 
@@ -56,7 +56,17 @@ export function useFaucetStatus(): FaucetStatus {
   const chains = useChains();
 
   const chainName = chains.find((c) => c.id === chainId)?.name ?? "Unknown";
-  const { address: faucetAddress, tokenAddress, explorerUrl } = getFaucetConfig(chainId);
+  const { address: faucetAddress, explorerUrl } = getFaucetConfig(chainId);
+
+  // First, read the token address from the faucet contract
+  const { data: tokenAddress } = useReadContract({
+    address: faucetAddress,
+    abi: FAUCET_ABI,
+    functionName: "TOKEN",
+    query: {
+      enabled: !!faucetAddress,
+    },
+  });
 
   const { data, isLoading, isError, refetch } = useReadContracts({
     contracts: [
@@ -96,7 +106,7 @@ export function useFaucetStatus(): FaucetStatus {
       },
     ],
     query: {
-      enabled: isConnected && !!faucetAddress,
+      enabled: isConnected && !!faucetAddress && !!tokenAddress,
       refetchInterval: 15_000, // Refresh every 15s
     },
   });
