@@ -59,7 +59,7 @@ export function useFaucetStatus(): FaucetStatus {
   const { address: faucetAddress, explorerUrl } = getFaucetConfig(chainId);
 
   // First, read the token address from the faucet contract
-  const { data: tokenAddress } = useReadContract({
+  const { data: tokenAddress, isLoading: isLoadingToken, isError: isErrorToken } = useReadContract({
     address: faucetAddress,
     abi: FAUCET_ABI,
     functionName: "TOKEN",
@@ -68,7 +68,7 @@ export function useFaucetStatus(): FaucetStatus {
     },
   });
 
-  const { data, isLoading, isError, refetch } = useReadContracts({
+  const { data, isLoading: isLoadingContracts, isError: isErrorContracts, refetch } = useReadContracts({
     contracts: [
       {
         address: faucetAddress,
@@ -120,14 +120,34 @@ export function useFaucetStatus(): FaucetStatus {
   const claimCount = claimCountResult?.result;
   const userBalance = userBalanceResult?.result;
   const canClaimResultValue = canClaimResult?.result;
-  const canClaimOk = Array.isArray(canClaimResultValue) ? canClaimResultValue[0] : false;
-  const canClaimReason = Array.isArray(canClaimResultValue) ? canClaimResultValue[1] : "";
+
+  // canClaim returns [bool ok, string reason] - viem returns as array
+  let canClaimOk = false;
+  let canClaimReason = "";
+  if (Array.isArray(canClaimResultValue)) {
+    canClaimOk = canClaimResultValue[0];
+    canClaimReason = canClaimResultValue[1];
+  } else if (
+    canClaimResultValue &&
+    typeof canClaimResultValue === "object" &&
+    "ok" in canClaimResultValue &&
+    "reason" in canClaimResultValue
+  ) {
+    // Handle if viem returns as object with named properties
+    const { ok, reason } = canClaimResultValue;
+    canClaimOk = typeof ok === "boolean" ? ok : false;
+    canClaimReason = typeof reason === "string" ? reason : "";
+  }
 
   // Calculate cooldown timing
   const now = Math.floor(Date.now() / 1000);
   const cooldownEndsAt =
     lastClaimAt !== undefined && cooldownSeconds !== undefined ? Number(lastClaimAt) + Number(cooldownSeconds) : null;
   const timeUntilClaimable = cooldownEndsAt ? Math.max(0, cooldownEndsAt - now) : 0;
+
+  // Loading if either query is loading, or if we're waiting for token address to enable main query
+  const isLoading = isLoadingToken || isLoadingContracts || (!!faucetAddress && !tokenAddress && !isErrorToken);
+  const isError = isErrorToken || isErrorContracts;
 
   return {
     dripAmount,
