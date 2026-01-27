@@ -17,7 +17,7 @@ export default function Home(): React.JSX.Element {
         </header>
       )}
       <div className="flex flex-col items-center gap-6 w-full max-w-lg text-center">
-        <Image src="/nillion.jpg" alt="Nillion" width={64} height={64} className="rounded-2xl" />
+        <Image src="/nillion.jpg" alt="Nillion" width={64} height={64} className="rounded-2xl shadow-lg ring-1 ring-white/20" />
         <h1 className="text-4xl font-bold tracking-tight text-white">NIL Faucet</h1>
         <FaucetCard />
       </div>
