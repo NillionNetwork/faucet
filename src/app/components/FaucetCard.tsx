@@ -14,7 +14,7 @@ import { formatNilAmount, formatTimeRemaining, truncateAddress } from "@/lib/for
 
 const ClaimButton = memo(function ClaimButton(): React.JSX.Element {
   const chainId = useChainId();
-  const { canClaim, claimBlockedReason, timeUntilClaimable, dripAmount, refetch, explorerUrl, faucetAddress } =
+  const { canClaim, claimBlockedReason, timeUntilClaimable, dripAmount, refetch, explorerUrl, faucetAddress, isLoading } =
     useFaucetStatus();
   const { claim, status, txHash } = useClaim(() => refetch());
 
@@ -65,6 +65,16 @@ const ClaimButton = memo(function ClaimButton(): React.JSX.Element {
         </Button>
         <p className="text-xs text-muted-foreground">Faucet address not configured for this network.</p>
       </div>
+    );
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <Button disabled className="w-full">
+        <Loader2 className="w-4 h-4 animate-spin" />
+        Loading...
+      </Button>
     );
   }
 
