@@ -31,3 +31,11 @@ export function formatTimeRemaining(seconds: number): string {
   const secLabel = secs === 1 ? "second" : "seconds";
   return `${secs} ${secLabel}`;
 }
+
+/**
+ * Truncates an Ethereum address to show first 6 and last 4 characters.
+ * @example truncateAddress("0x1234567890abcdef1234567890abcdef12345678") // "0x1234...5678"
+ */
+export function truncateAddress(address: string): string {
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}

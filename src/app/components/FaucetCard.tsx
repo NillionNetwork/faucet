@@ -2,45 +2,52 @@
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { AlertCircle, CheckCircle2, ChevronRight, Clock, ExternalLink, Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { useChainId, useConnection } from "wagmi";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
 import { useClaim } from "@/hooks/useClaim";
 import { useFaucetStatus } from "@/hooks/useFaucetStatus";
-import { formatNilAmount, formatTimeRemaining } from "@/lib/format";
+import { ANVIL_CHAIN_ID } from "@/lib/contracts";
+import { formatNilAmount, formatTimeRemaining, truncateAddress } from "@/lib/format";
 
-const ANVIL_CHAIN_ID = 31337;
-
-function ClaimButton(): React.JSX.Element {
+const ClaimButton = memo(function ClaimButton(): React.JSX.Element {
   const chainId = useChainId();
   const { canClaim, claimBlockedReason, timeUntilClaimable, dripAmount, refetch, explorerUrl, faucetAddress } =
     useFaucetStatus();
   const { claim, status, txHash } = useClaim(() => refetch());
 
-  // Countdown timer for cooldown
+  // Countdown timer for cooldown - manages sync, decrement, and refetch in one effect
   const [countdown, setCountdown] = useState(timeUntilClaimable);
+  const prevClaimBlockedReason = useRef(claimBlockedReason);
 
   useEffect(() => {
     setCountdown(timeUntilClaimable);
-  }, [timeUntilClaimable]);
 
-  useEffect(() => {
-    if (countdown <= 0) return;
-    const timer = setInterval(() => {
-      setCountdown((c) => Math.max(0, c - 1));
-    }, 1000);
-    return (): void => clearInterval(timer);
-  }, [countdown]);
-
-  // Refetch when cooldown ends to update canClaim
-  useEffect(() => {
-    if (countdown === 0 && claimBlockedReason === "COOLDOWN") {
-      console.log("[ClaimButton] Cooldown ended, refetching...");
-      refetch();
+    if (timeUntilClaimable <= 0) {
+      // Refetch when cooldown ends to update canClaim
+      if (prevClaimBlockedReason.current === "COOLDOWN") {
+        refetch();
+      }
+      prevClaimBlockedReason.current = claimBlockedReason;
+      return;
     }
-  }, [countdown, claimBlockedReason, refetch]);
+
+    prevClaimBlockedReason.current = claimBlockedReason;
+
+    const timer = setInterval(() => {
+      setCountdown((c) => {
+        const next = Math.max(0, c - 1);
+        if (next === 0 && claimBlockedReason === "COOLDOWN") {
+          refetch();
+        }
+        return next;
+      });
+    }, 1000);
+
+    return (): void => clearInterval(timer);
+  }, [timeUntilClaimable, claimBlockedReason, refetch]);
 
   // On Anvil, block.timestamp doesn't advance until a tx is mined, so the contract's
   // canClaim may stay false even after the real cooldown ends. We override this on
@@ -147,7 +154,7 @@ function ClaimButton(): React.JSX.Element {
       Claim {dripDisplay} NIL
     </Button>
   );
-}
+});
 
 function formatLastClaimed(timestamp: bigint): string {
   if (timestamp === BigInt(0)) return "Never";
@@ -155,8 +162,23 @@ function formatLastClaimed(timestamp: bigint): string {
   return date.toLocaleString();
 }
 
-function truncateAddress(address: string): string {
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+interface AddressLinkProps {
+  address: `0x${string}`;
+  explorerUrl: string;
+}
+
+function AddressLink({ address, explorerUrl }: AddressLinkProps): React.JSX.Element {
+  return (
+    <a
+      href={`${explorerUrl}/address/${address}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
+    >
+      {truncateAddress(address)}
+      <ExternalLink className="w-3 h-3" />
+    </a>
+  );
 }
 
 function BalanceHero(): React.JSX.Element {
@@ -210,28 +232,12 @@ function FaucetDetails(): React.JSX.Element {
           </div>
           <div className="flex justify-between">
             <span className="text-muted-foreground">Faucet contract</span>
-            <a
-              href={`${explorerUrl}/address/${faucetAddress}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
-            >
-              {truncateAddress(faucetAddress)}
-              <ExternalLink className="w-3 h-3" />
-            </a>
+            <AddressLink address={faucetAddress} explorerUrl={explorerUrl} />
           </div>
           {tokenAddress && (
             <div className="flex justify-between">
               <span className="text-muted-foreground">NIL token contract</span>
-              <a
-                href={`${explorerUrl}/address/${tokenAddress}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 hover:text-foreground transition-colors"
-              >
-                {truncateAddress(tokenAddress)}
-                <ExternalLink className="w-3 h-3" />
-              </a>
+              <AddressLink address={tokenAddress} explorerUrl={explorerUrl} />
             </div>
           )}
         </div>

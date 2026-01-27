@@ -6,16 +6,30 @@ import { useConnection, useChainId, useWaitForTransactionReceipt, useWriteContra
 
 import { FAUCET_ABI, getFaucetConfig } from "@/lib/contracts";
 
+/** Status of the claim transaction lifecycle */
 export type ClaimStatus = "idle" | "confirming" | "pending" | "success" | "error";
 
+/** Return value of the useClaim hook */
 export interface UseClaimResult {
+  /** Initiates a claim transaction */
   claim: () => void;
+  /** Current status of the claim */
   status: ClaimStatus;
+  /** Transaction hash once submitted */
   txHash: `0x${string}` | undefined;
+  /** Error if claim failed */
   error: Error | null;
+  /** Reset the claim state to idle */
   reset: () => void;
 }
 
+/**
+ * Hook to claim tokens from the faucet contract.
+ * Handles wallet confirmation, transaction submission, and receipt polling.
+ *
+ * @param onSuccess - Optional callback invoked when claim succeeds
+ * @returns Claim function, status, transaction hash, error, and reset function
+ */
 export function useClaim(onSuccess?: () => void): UseClaimResult {
   const { address } = useConnection();
   const chainId = useChainId();
@@ -60,7 +74,9 @@ export function useClaim(onSuccess?: () => void): UseClaimResult {
         action: {
           label: "View",
           onClick: (): void => {
-            window.open(txUrl, "_blank");
+            if (typeof window !== "undefined") {
+              window.open(txUrl, "_blank");
+            }
           },
         },
       });

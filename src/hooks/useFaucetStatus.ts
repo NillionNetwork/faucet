@@ -4,34 +4,52 @@ import { useConnection, useChainId, useChains, useReadContracts } from "wagmi";
 
 import { ERC20_ABI, FAUCET_ABI, getFaucetConfig } from "@/lib/contracts";
 
+/** Faucet status and user eligibility data */
 export interface FaucetStatus {
-  // Contract state
+  /** Amount of tokens dispensed per claim (in raw units) */
   dripAmount: bigint | undefined;
+  /** Cooldown period between claims in seconds */
   cooldownSeconds: bigint | undefined;
+  /** Unix timestamp of the user's last claim */
   lastClaimAt: bigint | undefined;
+  /** Total number of times the user has claimed */
   claimCount: bigint | undefined;
+  /** User's current NIL token balance */
   userBalance: bigint | undefined;
 
-  // Claim eligibility
+  /** Whether the user can claim right now */
   canClaim: boolean;
-  claimBlockedReason: string | null; // null if can claim, otherwise: "PAUSED", "DRIP_0", "EMPTY", "COOLDOWN"
+  /** Reason claim is blocked: "PAUSED", "DRIP_0", "EMPTY", "COOLDOWN", or null if claimable */
+  claimBlockedReason: string | null;
 
-  // Derived
-  cooldownEndsAt: number | null; // Unix timestamp when cooldown ends
-  timeUntilClaimable: number; // Seconds until can claim (0 if claimable now)
+  /** Unix timestamp when cooldown ends, or null if not applicable */
+  cooldownEndsAt: number | null;
+  /** Seconds remaining until user can claim (0 if claimable now) */
+  timeUntilClaimable: number;
 
-  // Loading state
+  /** Whether contract data is loading */
   isLoading: boolean;
+  /** Whether an error occurred fetching contract data */
   isError: boolean;
+  /** Function to manually refetch contract data */
   refetch: () => void;
 
-  // Config
+  /** Faucet contract address for the current chain */
   faucetAddress: `0x${string}` | undefined;
+  /** NIL token contract address for the current chain */
   tokenAddress: `0x${string}` | undefined;
+  /** Block explorer URL for the current chain */
   explorerUrl: string;
+  /** Human-readable name of the current chain */
   chainName: string;
 }
 
+/**
+ * Hook to fetch faucet contract state and user eligibility.
+ * Polls contract data every 15 seconds while connected.
+ *
+ * @returns Faucet status including drip amount, cooldown, claim eligibility, and user balance
+ */
 export function useFaucetStatus(): FaucetStatus {
   const { address, isConnected } = useConnection();
   const chainId = useChainId();

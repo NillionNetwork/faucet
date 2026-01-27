@@ -1,3 +1,6 @@
+/** Chain ID for local Anvil development network */
+export const ANVIL_CHAIN_ID = 31337;
+
 export const FAUCET_ABI = [
   {
     type: "function",
@@ -72,20 +75,22 @@ export const ERC20_ABI = [
 
 // NIL token addresses per chain
 const NIL_TOKEN_ADDRESSES: Record<number, `0x${string}`> = {
-  31337: "0x5FbDB2315678afecb367f032d93F642f64180aa3", // Anvil
+  [ANVIL_CHAIN_ID]: "0x5FbDB2315678afecb367f032d93F642f64180aa3",
 };
 
 function isHexAddress(value: string | undefined): value is `0x${string}` {
   return typeof value === "string" && /^0x[a-fA-F0-9]{40}$/.test(value);
 }
 
+const SEPOLIA_CHAIN_ID = 11155111;
+
 // Contract addresses per chain - loaded from environment
 function getFaucetAddress(chainId: number): `0x${string}` | undefined {
-  if (chainId === 11155111) {
+  if (chainId === SEPOLIA_CHAIN_ID) {
     const addr = process.env.NEXT_PUBLIC_FAUCET_ADDRESS_SEPOLIA;
     return isHexAddress(addr) ? addr : undefined;
   }
-  if (chainId === 31337) {
+  if (chainId === ANVIL_CHAIN_ID) {
     const addr = process.env.NEXT_PUBLIC_FAUCET_ADDRESS_ANVIL;
     return isHexAddress(addr) ? addr : undefined;
   }
@@ -101,8 +106,8 @@ export function getFaucetConfig(chainId: number): {
   const tokenAddress = NIL_TOKEN_ADDRESSES[chainId];
 
   const explorerUrls: Record<number, string> = {
-    11155111: "https://sepolia.etherscan.io",
-    31337: "http://localhost:8545",
+    [SEPOLIA_CHAIN_ID]: "https://sepolia.etherscan.io",
+    [ANVIL_CHAIN_ID]: "http://localhost:8545",
   };
 
   return {
