@@ -14,11 +14,10 @@ import { formatNilAmount, formatTimeRemaining, truncateAddress } from "@/lib/for
 
 const ClaimButton = memo(function ClaimButton(): React.JSX.Element {
   const chainId = useChainId();
-  const { canClaim, claimBlockedReason, timeUntilClaimable, dripAmount, refetch, explorerUrl, faucetAddress, isLoading } =
-    useFaucetStatus();
+  const { canClaim, claimBlockedReason, timeUntilClaimable, dripAmount, refetch, explorerUrl } = useFaucetStatus();
   const { claim, status, txHash } = useClaim(() => refetch());
 
-  // Countdown timer for cooldown - manages sync, decrement, and refetch in one effect
+  // Countdown timer for cooldown
   const [countdown, setCountdown] = useState(timeUntilClaimable);
   const prevClaimBlockedReason = useRef(claimBlockedReason);
 
@@ -26,7 +25,6 @@ const ClaimButton = memo(function ClaimButton(): React.JSX.Element {
     setCountdown(timeUntilClaimable);
 
     if (timeUntilClaimable <= 0) {
-      // Refetch when cooldown ends to update canClaim
       if (prevClaimBlockedReason.current === "COOLDOWN") {
         refetch();
       }
@@ -49,34 +47,8 @@ const ClaimButton = memo(function ClaimButton(): React.JSX.Element {
     return (): void => clearInterval(timer);
   }, [timeUntilClaimable, claimBlockedReason, refetch]);
 
-  // On Anvil, block.timestamp doesn't advance until a tx is mined, so the contract's
-  // canClaim may stay false even after the real cooldown ends. We override this on
-  // Anvil only (where gas is free), but not on real networks where reverts cost ETH.
   const isAnvil = chainId === ANVIL_CHAIN_ID;
   const effectiveCanClaim = canClaim || (isAnvil && claimBlockedReason === "COOLDOWN" && countdown === 0);
-
-  // No faucet address configured
-  if (!faucetAddress) {
-    return (
-      <div className="flex flex-col items-center gap-2">
-        <Button disabled className="w-full">
-          <AlertCircle className="w-4 h-4" />
-          Not Configured
-        </Button>
-        <p className="text-xs text-muted-foreground">Faucet address not configured for this network.</p>
-      </div>
-    );
-  }
-
-  // Loading state
-  if (isLoading) {
-    return (
-      <Button disabled className="w-full">
-        <Loader2 className="w-4 h-4 animate-spin" />
-        Loading...
-      </Button>
-    );
-  }
 
   // Success state
   if (status === "success" && txHash) {
@@ -100,7 +72,7 @@ const ClaimButton = memo(function ClaimButton(): React.JSX.Element {
     );
   }
 
-  // Loading/pending states
+  // Transaction states
   if (status === "confirming") {
     return (
       <Button disabled className="w-full">
@@ -122,16 +94,14 @@ const ClaimButton = memo(function ClaimButton(): React.JSX.Element {
   // Cooldown state
   if (claimBlockedReason === "COOLDOWN" && countdown > 0) {
     return (
-      <div className="flex flex-col items-center gap-2">
-        <Button disabled className="w-full">
-          <Clock className="w-4 h-4" />
-          Cooldown: {formatTimeRemaining(countdown)}
-        </Button>
-      </div>
+      <Button disabled className="w-full">
+        <Clock className="w-4 h-4" />
+        Cooldown: {formatTimeRemaining(countdown)}
+      </Button>
     );
   }
 
-  // Error states from contract
+  // Blocked states
   if (claimBlockedReason === "PAUSED") {
     return (
       <div className="flex flex-col items-center gap-2">
@@ -151,7 +121,6 @@ const ClaimButton = memo(function ClaimButton(): React.JSX.Element {
           <AlertCircle className="w-4 h-4" />
           Faucet Empty
         </Button>
-        <p className="text-xs text-muted-foreground">The faucet has run out of tokens. Please try again later.</p>
       </div>
     );
   }
@@ -192,16 +161,12 @@ function AddressLink({ address, explorerUrl }: AddressLinkProps): React.JSX.Elem
 }
 
 function BalanceHero(): React.JSX.Element {
-  const { userBalance, isLoading, chainName } = useFaucetStatus();
+  const { userBalance, chainName } = useFaucetStatus();
 
   return (
     <div className="text-center">
       <p className="text-sm text-muted-foreground mb-1">Your balance on {chainName}</p>
-      {isLoading ? (
-        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground mx-auto" />
-      ) : (
-        <p className="text-3xl font-bold">{userBalance !== undefined ? formatNilAmount(userBalance) : "0"} NIL</p>
-      )}
+      <p className="text-3xl font-bold">{userBalance !== undefined ? formatNilAmount(userBalance) : "0"} NIL</p>
     </div>
   );
 }
@@ -256,6 +221,49 @@ function FaucetDetails(): React.JSX.Element {
   );
 }
 
+function FaucetCardContent(): React.JSX.Element {
+  const { isLoading, isError, faucetAddress } = useFaucetStatus();
+
+  // Loading state - single spinner
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-8">
+        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">Loading faucet...</p>
+      </div>
+    );
+  }
+
+  // Not configured
+  if (!faucetAddress) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-4">
+        <AlertCircle className="w-8 h-8 text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">Faucet not configured for this network.</p>
+      </div>
+    );
+  }
+
+  // Error state
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-4">
+        <AlertCircle className="w-8 h-8 text-destructive" />
+        <p className="text-sm text-muted-foreground">Unable to connect to the faucet. Please try again later.</p>
+      </div>
+    );
+  }
+
+  // Ready - show full card
+  return (
+    <>
+      <BalanceHero />
+      <ClaimButton />
+      <FaucetDetails />
+    </>
+  );
+}
+
 export function FaucetCard(): React.JSX.Element {
   const { isConnected } = useConnection();
 
@@ -281,9 +289,7 @@ export function FaucetCard(): React.JSX.Element {
   return (
     <Card className="w-full px-6 py-8">
       <CardContent className="flex flex-col gap-3">
-        <BalanceHero />
-        <ClaimButton />
-        <FaucetDetails />
+        <FaucetCardContent />
       </CardContent>
     </Card>
   );
