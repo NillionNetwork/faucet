@@ -61,7 +61,7 @@ Transfer NIL tokens to the faucet contract address. The faucet needs tokens to d
 The deployer becomes the contract owner and can call these functions:
 
 | Function                     | Description                   |
-|------------------------------|-------------------------------|
+| ---------------------------- | ----------------------------- |
 | `setDripAmount(uint256)`     | Change tokens per claim       |
 | `setCooldown(uint256)`       | Change seconds between claims |
 | `pause()`                    | Pause all claims              |
