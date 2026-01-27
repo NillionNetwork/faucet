@@ -5,21 +5,17 @@ import "forge-std/Script.sol";
 import {NILFaucet} from "../src/NILFaucet.sol";
 
 contract DeployFaucet is Script {
-    // NIL Token address
-    address constant TOKEN = 0xfa718d54f31bcf49CcaC3a79C276fa87d11E2F44;
-
     function run() external returns (NILFaucet faucet) {
-        // NIL uses 6 decimals
-        uint256 dripAmount = 100e6;
-        uint256 cooldownSeconds = 24 hours;
-        // -----------------------------
+        address token = vm.envAddress("NIL_TOKEN_ADDRESS");
+        uint256 dripAmount = vm.envOr("DRIP_AMOUNT", uint256(1e6)); // 1 NIL default
+        uint256 cooldownSeconds = vm.envOr("COOLDOWN_SECONDS", uint256(1 hours));
 
         uint256 deployerPk = vm.envUint("PRIVATE_KEY");
         address owner = vm.addr(deployerPk);
 
         vm.startBroadcast(deployerPk);
 
-        faucet = new NILFaucet(TOKEN, dripAmount, cooldownSeconds, owner);
+        faucet = new NILFaucet(token, dripAmount, cooldownSeconds, owner);
 
         vm.stopBroadcast();
 

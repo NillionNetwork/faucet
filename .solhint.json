@@ -1,0 +1,13 @@
+{
+  "extends": "solhint:recommended",
+  "rules": {
+    "func-visibility": ["warn", { "ignoreConstructors": true }],
+    "max-line-length": ["warn", 120],
+    "import-path-check": "off",
+    "use-natspec": "off",
+    "gas-custom-errors": "error",
+    "gas-indexed-events": "error",
+    "gas-increment-by-one": "error",
+    "immutable-vars-naming": "error"
+  }
+}
