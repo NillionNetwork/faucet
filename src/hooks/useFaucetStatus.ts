@@ -59,7 +59,11 @@ export function useFaucetStatus(): FaucetStatus {
   const { address: faucetAddress, explorerUrl } = getFaucetConfig(chainId);
 
   // First, read the token address from the faucet contract
-  const { data: tokenAddress, isLoading: isLoadingToken, isError: isErrorToken } = useReadContract({
+  const {
+    data: tokenAddress,
+    isLoading: isLoadingToken,
+    isError: isErrorToken,
+  } = useReadContract({
     address: faucetAddress,
     abi: FAUCET_ABI,
     functionName: "TOKEN",
@@ -68,7 +72,12 @@ export function useFaucetStatus(): FaucetStatus {
     },
   });
 
-  const { data, isLoading: isLoadingContracts, isError: isErrorContracts, refetch } = useReadContracts({
+  const {
+    data,
+    isLoading: isLoadingContracts,
+    isError: isErrorContracts,
+    refetch,
+  } = useReadContracts({
     contracts: [
       {
         address: faucetAddress,
