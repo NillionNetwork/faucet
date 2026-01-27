@@ -36,7 +36,7 @@
 
 :root {
   --radius: 0.625rem;
-  --background: #f8fafc;
+  --background: hsl(240 5% 96%);
   --foreground: #0f172a;
   --card: #ffffff;
   --card-foreground: #0f172a;
@@ -54,28 +54,32 @@
   --border: #e2e8f0;
   --input: #e2e8f0;
   --ring: #4f46e5;
+  --bg-image: url("/bg-light.png");
+  --bg-blend: normal;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0f172a;
+    --background: rgba(38, 18, 127, 1);
     --foreground: #f8fafc;
-    --card: #1e293b;
+    --card: rgba(30, 20, 80, 0.8);
     --card-foreground: #f8fafc;
-    --popover: #1e293b;
+    --popover: rgba(30, 20, 80, 0.9);
     --popover-foreground: #f8fafc;
     --primary: #818cf8;
     --primary-foreground: #0f172a;
-    --secondary: #334155;
+    --secondary: rgba(60, 40, 140, 0.5);
     --secondary-foreground: #f8fafc;
-    --muted: #334155;
-    --muted-foreground: #94a3b8;
-    --accent: #334155;
+    --muted: rgba(60, 40, 140, 0.5);
+    --muted-foreground: #c4b5fd;
+    --accent: rgba(60, 40, 140, 0.5);
     --accent-foreground: #f8fafc;
     --destructive: #ef4444;
-    --border: #334155;
-    --input: #334155;
+    --border: rgba(100, 80, 180, 0.3);
+    --input: rgba(60, 40, 140, 0.5);
     --ring: #818cf8;
+    --bg-image: url("/bg-dark.png");
+    --bg-blend: luminosity;
   }
 }
 
@@ -87,10 +91,13 @@ body {
     "Segoe UI",
     sans-serif;
   background-color: var(--background);
-  background-image:
-    linear-gradient(rgba(99, 102, 241, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(99, 102, 241, 0.03) 1px, transparent 1px);
-  background-size: 50px 50px;
+  background-image: var(--bg-image);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-blend-mode: var(--bg-blend);
   color: var(--foreground);
   line-height: 1.5;
+  min-height: 100vh;
 }
