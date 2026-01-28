@@ -1,12 +1,13 @@
 "use client";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { AlertCircle, CheckCircle2, ChevronRight, Clock, ExternalLink, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, ChevronRight, Clock, ExternalLink, Loader2, Plus } from "lucide-react";
 import { memo, useEffect, useRef, useState } from "react";
-import { useChainId, useConnection } from "wagmi";
+import { useChainId, useConnection, useWalletClient } from "wagmi";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useClaim } from "@/hooks/useClaim";
 import { useFaucetStatus } from "@/hooks/useFaucetStatus";
 import { ANVIL_CHAIN_ID } from "@/lib/contracts";
@@ -161,12 +162,48 @@ function AddressLink({ address, explorerUrl }: AddressLinkProps): React.JSX.Elem
 }
 
 function BalanceHero(): React.JSX.Element {
-  const { userBalance, chainName } = useFaucetStatus();
+  const { userBalance, chainName, tokenAddress } = useFaucetStatus();
+  const { data: walletClient } = useWalletClient();
+
+  const addTokenToWallet = async (): Promise<void> => {
+    if (!walletClient || !tokenAddress) return;
+    try {
+      await walletClient.request({
+        method: "wallet_watchAsset",
+        params: {
+          type: "ERC20",
+          options: {
+            address: tokenAddress,
+            symbol: "NIL",
+            decimals: 6,
+          },
+        },
+      });
+    } catch {
+      // User rejected or wallet doesn't support wallet_watchAsset
+    }
+  };
 
   return (
     <div className="text-center">
       <p className="text-sm text-muted-foreground mb-1">Your balance on {chainName}</p>
-      <p className="text-3xl font-bold">{userBalance !== undefined ? formatNilAmount(userBalance) : "0"} NIL</p>
+      <p className="text-3xl font-bold inline-flex items-center gap-1.5">
+        {userBalance !== undefined ? formatNilAmount(userBalance) : "0"} NIL
+        {walletClient && tokenAddress && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={addTokenToWallet}
+                className="inline-flex items-center justify-center rounded text-muted-foreground/60 hover:text-foreground transition-colors"
+              >
+                <Plus className="w-5 h-5" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Add NIL token to wallet</TooltipContent>
+          </Tooltip>
+        )}
+      </p>
     </div>
   );
 }
