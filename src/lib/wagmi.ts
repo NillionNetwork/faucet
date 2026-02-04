@@ -1,6 +1,5 @@
 import { getDefaultConfig } from "@rainbow-me/rainbowkit";
-import { http } from "@wagmi/core";
-import type { Transport } from "@wagmi/core";
+import { http, type Transport } from "wagmi";
 import { anvil, sepolia } from "wagmi/chains";
 
 /**
@@ -15,10 +14,14 @@ const anvilRpcUrl = process.env.NEXT_PUBLIC_ANVIL_RPC_URL || "http://127.0.0.1:8
 const isDev = process.env.NODE_ENV === "development";
 export const chains = isDev ? ([sepolia, anvil] as const) : ([sepolia] as const);
 
-const transports: Record<number, Transport> = {
-  [sepolia.id]: http(sepoliaRpcUrl),
-  ...(isDev && { [anvil.id]: http(anvilRpcUrl) }),
-};
+const transports: Record<number, Transport> = isDev
+  ? {
+      [sepolia.id]: http(sepoliaRpcUrl),
+      [anvil.id]: http(anvilRpcUrl),
+    }
+  : {
+      [sepolia.id]: http(sepoliaRpcUrl),
+    };
 
 export const config = getDefaultConfig({
   appName: "Nillion Faucet",
