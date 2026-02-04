@@ -17,11 +17,8 @@ export const chains = isDev ? ([sepolia, anvil] as const) : ([sepolia] as const)
 
 const transports: Record<number, Transport> = {
   [sepolia.id]: http(sepoliaRpcUrl),
+  ...(isDev && { [anvil.id]: http(anvilRpcUrl) }),
 };
-
-if (isDev) {
-  transports[anvil.id] = http(anvilRpcUrl);
-}
 
 export const config = getDefaultConfig({
   appName: "Nillion Faucet",
