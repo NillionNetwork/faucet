@@ -17,10 +17,13 @@
     "docker:deploy": "./docker/deploy-faucet.sh"
   },
   "dependencies": {
+    "@metamask/sdk": "~0.33.1",
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@rainbow-me/rainbowkit": "^2.2.10",
     "@tanstack/react-query": "^5.90.20",
+    "@wagmi/core": "^3.3.2",
+    "@walletconnect/ethereum-provider": "^2.21.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.563.0",
