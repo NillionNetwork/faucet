@@ -10,8 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useClaim } from "@/hooks/useClaim";
 import { useFaucetStatus } from "@/hooks/useFaucetStatus";
-import { ANVIL_CHAIN_ID } from "@/lib/contracts";
+import { ANVIL_CHAIN_ID, NILLION_TESTNET_CHAIN_ID } from "@/lib/contracts";
 import { formatNilAmount, formatTimeRemaining, truncateAddress } from "@/lib/format";
+
+import { L2FaucetCardContent } from "./L2FaucetContent";
 
 const ClaimButton = memo(function ClaimButton(): React.JSX.Element {
   const chainId = useChainId();
@@ -303,6 +305,8 @@ function FaucetCardContent(): React.JSX.Element {
 
 export function FaucetCard(): React.JSX.Element {
   const { isConnected } = useConnection();
+  const chainId = useChainId();
+  const isL2 = chainId === NILLION_TESTNET_CHAIN_ID;
 
   if (!isConnected) {
     return (
@@ -326,7 +330,7 @@ export function FaucetCard(): React.JSX.Element {
   return (
     <Card className="w-full px-6 py-8">
       <CardContent className="flex flex-col gap-3">
-        <FaucetCardContent />
+        {isL2 ? <L2FaucetCardContent /> : <FaucetCardContent />}
       </CardContent>
     </Card>
   );

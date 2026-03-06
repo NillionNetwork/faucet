@@ -1,6 +1,12 @@
 /** Chain ID for local Anvil development network */
 export const ANVIL_CHAIN_ID = 31337;
 
+/** Chain ID for Nillion Testnet (L2) */
+export const NILLION_TESTNET_CHAIN_ID = 78651;
+
+/** Nillion Testnet RPC URL */
+export const NILLION_TESTNET_RPC_URL = "https://rpc.testnet.nillion.network";
+
 export const FAUCET_ABI = [
   {
     type: "function",
@@ -68,8 +74,25 @@ export const ERC20_ABI = [
     type: "function",
     name: "balanceOf",
     inputs: [{ name: "account", type: "address" }],
-    outputs: [{ type: "uint256" }],
+    outputs: [{ name: "balance", type: "uint256" }],
     stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "decimals",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint8" }],
+  },
+  {
+    type: "function",
+    name: "transfer",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "to", type: "address" },
+      { name: "value", type: "uint256" },
+    ],
+    outputs: [{ name: "", type: "bool" }],
   },
 ] as const;
 
@@ -92,19 +115,22 @@ function getFaucetAddress(chainId: number): `0x${string}` | undefined {
   return undefined;
 }
 
+function getExplorerUrl(chainId: number): string {
+  // Import chains lazily to avoid circular deps at module level
+  const explorerUrls: Record<number, string> = {
+    [SEPOLIA_CHAIN_ID]: "https://sepolia.etherscan.io",
+    [NILLION_TESTNET_CHAIN_ID]: "https://explorer.testnet.nillion.network",
+    [ANVIL_CHAIN_ID]: "http://localhost:8545",
+  };
+  return explorerUrls[chainId] || "https://etherscan.io";
+}
+
 export function getFaucetConfig(chainId: number): {
   address: `0x${string}` | undefined;
   explorerUrl: string;
 } {
-  const address = getFaucetAddress(chainId);
-
-  const explorerUrls: Record<number, string> = {
-    [SEPOLIA_CHAIN_ID]: "https://sepolia.etherscan.io",
-    [ANVIL_CHAIN_ID]: "http://localhost:8545",
-  };
-
   return {
-    address,
-    explorerUrl: explorerUrls[chainId] || "https://etherscan.io",
+    address: getFaucetAddress(chainId),
+    explorerUrl: getExplorerUrl(chainId),
   };
 }
