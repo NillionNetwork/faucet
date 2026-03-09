@@ -4,10 +4,13 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Image from "next/image";
 import { useConnection } from "wagmi";
 
+import { useChainFromUrl } from "@/hooks/useChainFromUrl";
+
 import { FaucetCard } from "./components/FaucetCard";
 
 export default function Home(): React.JSX.Element {
   const { isConnected } = useConnection();
+  useChainFromUrl();
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8">

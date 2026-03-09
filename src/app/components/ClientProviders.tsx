@@ -4,11 +4,11 @@ import "@rainbow-me/rainbowkit/styles.css";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import { WagmiProvider } from "wagmi";
 
-import { config } from "@/lib/wagmi";
+import { getConfig } from "@/lib/wagmi";
 
 interface ClientProvidersProps {
   children: ReactNode;
@@ -16,9 +16,16 @@ interface ClientProvidersProps {
 
 export default function ClientProviders({ children }: ClientProvidersProps): React.JSX.Element {
   const [queryClient] = useState(() => new QueryClient());
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return <></>;
 
   return (
-    <WagmiProvider config={config}>
+    <WagmiProvider config={getConfig()}>
       <QueryClientProvider client={queryClient}>
         <RainbowKitProvider>
           {children}

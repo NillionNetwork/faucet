@@ -36,10 +36,17 @@ const transports: Record<number, Transport> = isDev
       [nillionTestnet.id]: http(NILLION_TESTNET_RPC_URL),
     };
 
-export const config = getDefaultConfig({
-  appName: "Nillion Faucet",
-  projectId: walletConnectProjectId,
-  chains,
-  transports,
-  ssr: true,
-});
+let _config: ReturnType<typeof getDefaultConfig> | undefined;
+
+export function getConfig(): ReturnType<typeof getDefaultConfig> {
+  if (!_config) {
+    _config = getDefaultConfig({
+      appName: "Nillion Faucet",
+      projectId: walletConnectProjectId,
+      chains,
+      transports,
+      ssr: true,
+    });
+  }
+  return _config;
+}
