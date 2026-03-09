@@ -157,10 +157,11 @@ async function getBalances(context: FaucetContext, recipient: Address): Promise<
   };
 }
 
-export function getL2FaucetConfig(): { ethAmount: string; nilAmount: string } {
+export function getL2FaucetConfig(): { ethAmount: string; nilAmount: string; nilTokenAddress: string } {
   return {
     ethAmount: process.env.L2_FAUCET_ETH_AMOUNT ?? "0.0001",
     nilAmount: process.env.L2_FAUCET_NIL_AMOUNT ?? "70",
+    nilTokenAddress: getEnv("L2_NIL_TOKEN_ADDRESS"),
   };
 }
 

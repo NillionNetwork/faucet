@@ -8,6 +8,7 @@ export const runtime = "nodejs";
 type StatusResponse = {
   ethAmount: string;
   nilAmount: string;
+  nilTokenAddress: string;
   cooldownMs: number;
   retryAfterMs: number;
 };
@@ -41,6 +42,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<StatusResp
   return NextResponse.json({
     ethAmount: config.ethAmount,
     nilAmount: config.nilAmount,
+    nilTokenAddress: config.nilTokenAddress,
     cooldownMs,
     retryAfterMs,
   });

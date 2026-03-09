@@ -1,7 +1,7 @@
 "use client";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useConnection } from "wagmi";
@@ -89,9 +89,16 @@ function ChainSelector({ onSelect }: ChainSelectorProps): React.JSX.Element {
   );
 }
 
-function FaucetPage(): React.JSX.Element {
+interface FaucetPageProps {
+  chainParam: string;
+  onBack: () => void;
+}
+
+function FaucetPage({ chainParam, onBack }: FaucetPageProps): React.JSX.Element {
   const { isConnected } = useConnection();
   useChainFromUrl();
+
+  const networkLabel = chainParam === "L2" ? "Nillion Testnet" : "Ethereum Sepolia";
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8">
@@ -109,7 +116,16 @@ function FaucetPage(): React.JSX.Element {
           className="rounded-2xl shadow-lg ring-1 ring-white/20"
         />
         <h1 className="text-4xl font-bold tracking-tight text-white">NIL Faucet</h1>
+        <p className="text-sm text-indigo-300/70">{networkLabel}</p>
         <FaucetCard />
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex items-center gap-1.5 text-sm text-indigo-400/60 hover:text-indigo-300 transition-colors"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Switch network
+        </button>
       </div>
     </main>
   );
@@ -122,6 +138,12 @@ export default function Home(): React.JSX.Element {
   useEffect(() => {
     setChainParam(new URLSearchParams(window.location.search).get("chain"));
     setReady(true);
+
+    const onPopState = (): void => {
+      setChainParam(new URLSearchParams(window.location.search).get("chain"));
+    };
+    window.addEventListener("popstate", onPopState);
+    return (): void => window.removeEventListener("popstate", onPopState);
   }, []);
 
   const handleSelect = (chain: string): void => {
@@ -133,7 +155,14 @@ export default function Home(): React.JSX.Element {
 
   if (!ready) return <></>;
 
+  const handleBack = (): void => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("chain");
+    window.history.pushState({}, "", url.toString());
+    setChainParam(null);
+  };
+
   if (!chainParam) return <ChainSelector onSelect={handleSelect} />;
 
-  return <FaucetPage />;
+  return <FaucetPage chainParam={chainParam} onBack={handleBack} />;
 }

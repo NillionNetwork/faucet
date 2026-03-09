@@ -2,14 +2,14 @@
 
 import { CheckCircle2, Clock, ExternalLink, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { formatEther } from "viem";
-import { useBalance, useChainId, useConnection } from "wagmi";
+import { formatEther, isAddress } from "viem";
+import { useBalance, useChainId, useConnection, useReadContract } from "wagmi";
 
 import { Button } from "@/components/ui/button";
 import { useL2Claim } from "@/hooks/useL2Claim";
 import { useL2Status } from "@/hooks/useL2Status";
-import { getFaucetConfig, NILLION_TESTNET_CHAIN_ID } from "@/lib/contracts";
-import { formatTimeRemaining, truncateAddress } from "@/lib/format";
+import { ERC20_ABI, getFaucetConfig, NILLION_TESTNET_CHAIN_ID } from "@/lib/contracts";
+import { formatNilAmount, formatTimeRemaining, truncateAddress } from "@/lib/format";
 
 interface TxLinkProps {
   label: string;
@@ -136,22 +136,38 @@ function L2ClaimButton({ l2Status }: { l2Status: L2StatusSnapshot }): React.JSX.
   );
 }
 
-function L2BalanceHero(): React.JSX.Element {
+function L2BalanceHero({ nilTokenAddress }: { nilTokenAddress: string | undefined }): React.JSX.Element {
   const { address } = useConnection();
   const { data: ethBalance } = useBalance({
     address,
     chainId: NILLION_TESTNET_CHAIN_ID,
   });
 
+  const validTokenAddress = nilTokenAddress && isAddress(nilTokenAddress) ? nilTokenAddress : undefined;
+
+  const { data: nilBalance } = useReadContract({
+    address: validTokenAddress,
+    abi: ERC20_ABI,
+    functionName: "balanceOf",
+    args: address ? [address] : undefined,
+    chainId: NILLION_TESTNET_CHAIN_ID,
+    query: { enabled: !!validTokenAddress && !!address },
+  });
+
+  const ethDisplay = ethBalance
+    ? Number(formatEther(ethBalance.value)).toLocaleString(undefined, { maximumFractionDigits: 6 })
+    : "...";
+  const nilDisplay = nilBalance !== undefined ? formatNilAmount(nilBalance) : "...";
+
   return (
     <div className="text-center">
       <p className="text-sm text-muted-foreground mb-1">Your wallet on Nillion Testnet</p>
       <p className="text-lg font-mono">{address ? truncateAddress(address) : "..."}</p>
-      {ethBalance && (
-        <p className="text-sm text-muted-foreground mt-1">
-          {Number(formatEther(ethBalance.value)).toLocaleString(undefined, { maximumFractionDigits: 6 })} ETH
-        </p>
-      )}
+      <div className="mt-1.5 flex items-center justify-center gap-3 text-xs text-muted-foreground">
+        <span>{nilDisplay} NIL</span>
+        <span>·</span>
+        <span>{ethDisplay} ETH</span>
+      </div>
     </div>
   );
 }
@@ -159,14 +175,14 @@ function L2BalanceHero(): React.JSX.Element {
 export function L2FaucetCardContent(): React.JSX.Element {
   const chainId = useChainId();
   const { explorerUrl } = getFaucetConfig(chainId);
-  const { cooldownMs, ethAmount, nilAmount, retryAfterMs, refetch } = useL2Status();
+  const { cooldownMs, ethAmount, nilAmount, nilTokenAddress, retryAfterMs, refetch } = useL2Status();
 
   const cooldownHours = Math.round(cooldownMs / 3600000);
   const cooldownLabel = cooldownHours === 1 ? "1 hour" : `${cooldownHours} hours`;
 
   return (
     <>
-      <L2BalanceHero />
+      <L2BalanceHero nilTokenAddress={nilTokenAddress} />
       <L2ClaimButton l2Status={{ ethAmount, nilAmount, retryAfterMs, refetch }} />
       <div className="flex flex-col gap-1 text-xs text-muted-foreground text-center pt-2">
         <p>Cooldown: {cooldownLabel}</p>

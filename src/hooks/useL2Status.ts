@@ -7,6 +7,7 @@ import { useAccount } from "wagmi";
 export interface L2Status {
   ethAmount: string;
   nilAmount: string;
+  nilTokenAddress: string | undefined;
   cooldownMs: number;
   retryAfterMs: number;
   isLoading: boolean;
@@ -19,12 +20,18 @@ export function useL2Status(): L2Status & { refetch: () => void } {
     queryFn: async (): Promise<Omit<L2Status, "isLoading">> => {
       const params = address ? `?address=${address}` : "";
       const response = await fetch(`/api/faucet/status${params}`);
-      const json: { ethAmount: string; nilAmount: string; cooldownMs: number; retryAfterMs: number } =
-        await response.json();
+      const json: {
+        ethAmount: string;
+        nilAmount: string;
+        nilTokenAddress?: string;
+        cooldownMs: number;
+        retryAfterMs: number;
+      } = await response.json();
 
       return {
         ethAmount: json.ethAmount,
         nilAmount: json.nilAmount,
+        nilTokenAddress: json.nilTokenAddress,
         cooldownMs: json.cooldownMs,
         retryAfterMs: json.retryAfterMs,
       };
@@ -41,6 +48,7 @@ export function useL2Status(): L2Status & { refetch: () => void } {
   const statusData = query.data ?? {
     ethAmount: "0.0001",
     nilAmount: "70",
+    nilTokenAddress: undefined,
     cooldownMs: 86400000,
     retryAfterMs: 0,
   };
