@@ -10,55 +10,79 @@ import { useChainFromUrl } from "@/hooks/useChainFromUrl";
 
 import { FaucetCard } from "./components/FaucetCard";
 
+interface NetworkCardProps {
+  label: string;
+  sublabel: string;
+  onClick: () => void;
+  delay: string;
+}
+
+function NetworkCard({ label, sublabel, onClick, delay }: NetworkCardProps): React.JSX.Element {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{ animationDelay: delay }}
+      className="chain-card animate-selector-fade-up group relative flex flex-col justify-between aspect-square rounded-2xl border border-indigo-400/10 bg-indigo-950/40 p-6 text-left cursor-pointer overflow-hidden"
+    >
+      {/* Ambient glow spot */}
+      <div className="absolute top-0 right-0 h-40 w-40 rounded-full bg-indigo-500/5 blur-3xl animate-selector-glow-pulse" />
+
+      {/* Network type pill */}
+      <span className="relative z-10 inline-flex w-fit items-center rounded-md border border-indigo-300/10 bg-indigo-400/8 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wider text-indigo-300/60">
+        {sublabel}
+      </span>
+
+      {/* Bottom content */}
+      <div className="relative z-10">
+        <h2 className="text-[22px] font-semibold tracking-tight text-white">{label}</h2>
+        <span className="mt-1.5 inline-flex items-center gap-1.5 text-sm font-medium text-indigo-400">
+          <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+          Continue
+        </span>
+      </div>
+    </button>
+  );
+}
+
 interface ChainSelectorProps {
   onSelect: (chain: string) => void;
 }
 
 function ChainSelector({ onSelect }: ChainSelectorProps): React.JSX.Element {
   return (
-    <main className="min-h-screen flex items-center justify-center p-8">
-      <div className="w-full max-w-3xl flex flex-col gap-8">
-        <div className="flex flex-col gap-4">
-          <span className="inline-flex items-center gap-2 w-fit rounded-full border border-lime-400/30 bg-lime-400/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-lime-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-lime-400" />
+    <main className="min-h-screen flex items-center justify-center p-4 sm:p-8">
+      <div className="w-full max-w-[720px] rounded-3xl border border-indigo-400/10 bg-indigo-950/60 p-8 sm:p-10 backdrop-blur-xl shadow-[0_0_80px_-20px_rgba(30,20,80,0.5)]">
+        {/* Badge */}
+        <div className="animate-selector-fade-up" style={{ animationDelay: "0ms" }}>
+          <span className="inline-flex items-center gap-2 rounded-full border border-indigo-400/25 bg-indigo-500/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-indigo-300">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-60" />
+              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-indigo-400" />
+            </span>
             Testnet Access
           </span>
-          <h1 className="text-5xl sm:text-6xl font-bold tracking-tight text-white leading-tight">
-            Claim your
-            <br />
-            testnet tokens
-          </h1>
-          <p className="text-muted-foreground text-base">Choose a network below to continue your faucet flow.</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <button
-            type="button"
-            onClick={() => onSelect("L1")}
-            className="group relative flex flex-col justify-end aspect-square rounded-2xl border border-white/10 bg-linear-to-br from-white/5 to-transparent p-6 text-left transition-all hover:border-lime-400/30 hover:shadow-[0_0_40px_-12px_rgba(163,230,53,0.15)]"
-          >
-            <div>
-              <h2 className="text-2xl font-bold text-white">Sepolia L1</h2>
-              <span className="mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-lime-400">
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                Continue
-              </span>
-            </div>
-          </button>
+        {/* Heading */}
+        <h1
+          className="animate-selector-fade-up mt-6 text-[clamp(2.25rem,5vw,3.5rem)] font-bold leading-[1.08] tracking-[-0.02em] text-white"
+          style={{ animationDelay: "80ms" }}
+        >
+          Claim your
+          <br />
+          testnet tokens
+        </h1>
 
-          <button
-            type="button"
-            onClick={() => onSelect("L2")}
-            className="group relative flex flex-col justify-end aspect-square rounded-2xl border border-white/10 bg-linear-to-br from-white/5 to-transparent p-6 text-left transition-all hover:border-lime-400/30 hover:shadow-[0_0_40px_-12px_rgba(163,230,53,0.15)]"
-          >
-            <div>
-              <h2 className="text-2xl font-bold text-white">Nillion L2</h2>
-              <span className="mt-1 inline-flex items-center gap-1.5 text-sm font-medium text-lime-400">
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                Continue
-              </span>
-            </div>
-          </button>
+        {/* Subtitle */}
+        <p className="animate-selector-fade-up mt-3 text-[15px] text-indigo-200/50" style={{ animationDelay: "140ms" }}>
+          Choose a network below to continue your faucet flow.
+        </p>
+
+        {/* Cards grid */}
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <NetworkCard label="Sepolia L1" sublabel="Ethereum Testnet" onClick={() => onSelect("L1")} delay="220ms" />
+          <NetworkCard label="Nillion L2" sublabel="Nillion Testnet" onClick={() => onSelect("L2")} delay="320ms" />
         </div>
       </div>
     </main>
