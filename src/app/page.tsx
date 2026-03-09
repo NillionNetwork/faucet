@@ -13,11 +13,12 @@ import { FaucetCard } from "./components/FaucetCard";
 interface NetworkCardProps {
   label: string;
   sublabel: string;
+  description: string;
   onClick: () => void;
   delay: string;
 }
 
-function NetworkCard({ label, sublabel, onClick, delay }: NetworkCardProps): React.JSX.Element {
+function NetworkCard({ label, sublabel, description, onClick, delay }: NetworkCardProps): React.JSX.Element {
   return (
     <button
       type="button"
@@ -35,6 +36,7 @@ function NetworkCard({ label, sublabel, onClick, delay }: NetworkCardProps): Rea
 
       {/* Bottom content */}
       <div className="relative z-10">
+        <p className="text-[13px] leading-snug text-indigo-200/40 mb-3">{description}</p>
         <h2 className="text-[22px] font-semibold tracking-tight text-white">{label}</h2>
         <span className="mt-1.5 inline-flex items-center gap-1.5 text-sm font-medium text-indigo-400">
           <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-1" />
@@ -81,8 +83,20 @@ function ChainSelector({ onSelect }: ChainSelectorProps): React.JSX.Element {
 
         {/* Cards grid */}
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <NetworkCard label="Sepolia L1" sublabel="Ethereum Testnet" onClick={() => onSelect("L1")} delay="220ms" />
-          <NetworkCard label="Nillion L2" sublabel="Nillion Testnet" onClick={() => onSelect("L2")} delay="320ms" />
+          <NetworkCard
+            label="Sepolia L1"
+            sublabel="Ethereum Testnet"
+            description="Get NIL on Nillion's L1"
+            onClick={() => onSelect("L1")}
+            delay="220ms"
+          />
+          <NetworkCard
+            label="Nillion L2"
+            sublabel="Nillion Testnet"
+            description="Get NIL and ETH on Nillion's L2"
+            onClick={() => onSelect("L2")}
+            delay="320ms"
+          />
         </div>
       </div>
     </main>
