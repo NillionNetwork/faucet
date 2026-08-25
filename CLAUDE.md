@@ -33,7 +33,8 @@ Nillion Faucet — a testnet faucet web app for claiming NIL tokens on **L1 (Eth
 **Key source layout:**
 
 - `src/lib/wagmi.ts` — Chain config (Sepolia, Nillion Testnet, Anvil in dev). Defines `nillionTestnet` chain.
-- `src/lib/contracts.ts` — Shared ABIs (faucet + ERC-20), `getFaucetConfig()` resolves contract address + explorer URL per chain. Constants: `NILLION_TESTNET_CHAIN_ID`, `NILLION_TESTNET_RPC_URL`.
+- `src/lib/contracts.ts` — Shared ABIs (faucet + ERC-20), `getFaucetConfig(chainId, variant?)` resolves contract address + explorer URL. Constants: `NILLION_TESTNET_CHAIN_ID`, `NILLION_TESTNET_RPC_URL`, `BLACKLIGHT_CHAIN_PARAM`. Type: `FaucetVariant`.
+- `src/hooks/useFaucetVariant.ts` — resolves the faucet **variant** from `?chain=`; see "Two faucets on one chain" below.
 - `src/lib/l2/faucet.ts` — Server-side viem logic: `sendPayout()` sends ETH then NIL sequentially, `getL2FaucetConfig()` returns drip amounts, `checkFunding()` validates balances. Singleton `FaucetContext` (lazy-initialized).
 - `src/lib/l2/rate-limit.ts` — Redis cooldown: `checkCooldown()`, `markCooldown()`, `getCooldownMs()`. Key prefix: `nillion:faucet:l2:cooldown`.
 - `src/lib/l2/redis.ts` — Singleton ioredis client via `getRedisClient()`.
@@ -48,6 +49,19 @@ Nillion Faucet — a testnet faucet web app for claiming NIL tokens on **L1 (Eth
 - `src/app/components/ClientProviders.tsx` — wagmi/RainbowKit/QueryClient providers.
 
 **L1 contract architecture:** `NILFaucet` wraps an immutable ERC-20 `TOKEN` reference. `canClaim(address)` returns `(bool, string)` where the string is a reason code: `PAUSED`, `DRIP_0`, `EMPTY`, `COOLDOWN`. The frontend maps these to UI states directly.
+
+**Two faucets on one chain (the `variant` concept):** Sepolia hosts the original NIL faucet **and** one for Blacklight L1's NIL — a different ERC-20 at a different address, deployed 2026-08-25. `TOKEN` is immutable, so one contract cannot serve both tokens; each needs its own `NILFaucet` instance.
+
+Because both are on chain 11155111, `chainId` cannot distinguish them, and the app was keyed on `chainId` alone. A **variant** does the disambiguating:
+
+- `?chain=blacklight` → variant `"blacklight"` → `NEXT_PUBLIC_FAUCET_ADDRESS_SEPOLIA_BLACKLIGHT`
+- anything else (`?chain=L1`, `?chain=L2`, no param) → variant `undefined` → the chain's default, i.e. **existing behaviour, unchanged**
+
+`useFaucetVariant()` reads it **synchronously** rather than in an effect, on purpose: resolving a tick late would let the first render of `?chain=blacklight` read the _default_ faucet, painting the wrong token's balance and drip, and a fast click could send `claim()` to the wrong contract. It is `window`-guarded for SSR.
+
+Everything downstream is automatic — the UI reads `TOKEN`, `dripAmount` and `cooldownSeconds` _from the contract_, so pointing at a different faucet gets the right token, drip and cooldown with no further wiring.
+
+**It is deliberately absent from the landing page.** No `NetworkCard` renders it; the URL is the only way in. If its env var is unset the card says "Faucet not configured" rather than falling back to the other faucet — a silent fallback between two different NILs is the one failure mode worth refusing outright.
 
 **L2 flow:** Client POSTs wallet address → server checks Redis cooldown → server sends ETH transfer then ERC-20 transfer sequentially (avoids nonce collisions) → marks cooldown in Redis → returns both tx hashes.
 
@@ -69,6 +83,7 @@ See `.env.example`. Key vars:
 
 - `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` — Required for WalletConnect
 - `NEXT_PUBLIC_FAUCET_ADDRESS_SEPOLIA` / `NEXT_PUBLIC_FAUCET_ADDRESS_ANVIL` — Contract addresses per chain
+- `NEXT_PUBLIC_FAUCET_ADDRESS_SEPOLIA_BLACKLIGHT` — the Blacklight L1 NIL faucet on Sepolia, reached only via `?chain=blacklight`. Needs its own deployed `NILFaucet` (drip 20 NIL = `20000000`, cooldown `86400`), funded with that token
 - `NEXT_PUBLIC_SEPOLIA_RPC_URL` / `NEXT_PUBLIC_ANVIL_RPC_URL` — Optional RPC overrides
 
 **L2 (server-side):**

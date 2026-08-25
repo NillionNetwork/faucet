@@ -98,14 +98,30 @@ export const ERC20_ABI = [
 
 const SEPOLIA_CHAIN_ID = 11155111;
 
+/**
+ * A faucet VARIANT distinguishes two faucets that live on the SAME chain, which chainId
+ * alone cannot. Sepolia now hosts two: the original NIL faucet, and one for the Blacklight
+ * L1 NIL token deployed 2026-08-25 — a different ERC-20 at a different address.
+ */
+export type FaucetVariant = "blacklight";
+
+/** URL value that selects the Blacklight faucet: `?chain=blacklight`. Deliberately not on the landing page. */
+export const BLACKLIGHT_CHAIN_PARAM = "blacklight";
+
 function isHexAddress(value: string | undefined): value is `0x${string}` {
   return typeof value === "string" && /^0x[a-fA-F0-9]{40}$/.test(value);
 }
 
 // Contract addresses per chain - loaded from environment
-function getFaucetAddress(chainId: number): `0x${string}` | undefined {
+function getFaucetAddress(chainId: number, variant?: FaucetVariant): `0x${string}` | undefined {
   if (chainId === SEPOLIA_CHAIN_ID) {
-    const addr = process.env.NEXT_PUBLIC_FAUCET_ADDRESS_SEPOLIA;
+    // Each branch names its env var LITERALLY. `process.env[someKey]` is not statically
+    // analysable, so Next inlines nothing and every NEXT_PUBLIC_* read comes back undefined
+    // in the browser — a faucet that silently reports "not configured" in production only.
+    const addr =
+      variant === "blacklight"
+        ? process.env.NEXT_PUBLIC_FAUCET_ADDRESS_SEPOLIA_BLACKLIGHT
+        : process.env.NEXT_PUBLIC_FAUCET_ADDRESS_SEPOLIA;
     return isHexAddress(addr) ? addr : undefined;
   }
   if (chainId === ANVIL_CHAIN_ID) {
@@ -125,12 +141,15 @@ function getExplorerUrl(chainId: number): string {
   return explorerUrls[chainId] || "https://etherscan.io";
 }
 
-export function getFaucetConfig(chainId: number): {
+export function getFaucetConfig(
+  chainId: number,
+  variant?: FaucetVariant,
+): {
   address: `0x${string}` | undefined;
   explorerUrl: string;
 } {
   return {
-    address: getFaucetAddress(chainId),
+    address: getFaucetAddress(chainId, variant),
     explorerUrl: getExplorerUrl(chainId),
   };
 }
