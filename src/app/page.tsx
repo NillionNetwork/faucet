@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { useConnection } from "wagmi";
 
 import { useChainFromUrl } from "@/hooks/useChainFromUrl";
+import { BLACKLIGHT_CHAIN_PARAM } from "@/lib/contracts";
 
 import { FaucetCard } from "./components/FaucetCard";
 
@@ -108,11 +109,22 @@ interface FaucetPageProps {
   onBack: () => void;
 }
 
+/**
+ * Two faucets now sit on Sepolia, so "Ethereum Sepolia" alone no longer says which one you are
+ * looking at. Naming the Blacklight variant is the cheapest guard against claiming from the
+ * wrong token and concluding the faucet is broken.
+ */
+function networkLabelFor(chainParam: string): string {
+  if (chainParam === "L2") return "Nillion Testnet";
+  if (chainParam.toLowerCase() === BLACKLIGHT_CHAIN_PARAM) return "Blacklight L1 · Ethereum Sepolia";
+  return "Ethereum Sepolia";
+}
+
 function FaucetPage({ chainParam, onBack }: FaucetPageProps): React.JSX.Element {
   const { isConnected } = useConnection();
   useChainFromUrl();
 
-  const networkLabel = chainParam === "L2" ? "Nillion Testnet" : "Ethereum Sepolia";
+  const networkLabel = networkLabelFor(chainParam);
 
   return (
     <main className="min-h-screen flex flex-col items-center justify-center p-8">

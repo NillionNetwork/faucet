@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useConnection, useChainId, useWaitForTransactionReceipt, useWriteContract } from "wagmi";
 
+import { useFaucetVariant } from "@/hooks/useFaucetVariant";
 import { FAUCET_ABI, getFaucetConfig } from "@/lib/contracts";
 
 /** Status of the claim transaction lifecycle */
@@ -33,7 +34,8 @@ export interface UseClaimResult {
 export function useClaim(onSuccess?: () => void): UseClaimResult {
   const { address } = useConnection();
   const chainId = useChainId();
-  const { address: faucetAddress, explorerUrl } = getFaucetConfig(chainId);
+  const variant = useFaucetVariant();
+  const { address: faucetAddress, explorerUrl } = getFaucetConfig(chainId, variant);
 
   const [error, setError] = useState<Error | null>(null);
   const toastShownForTx = useRef<string | null>(null);

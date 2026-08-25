@@ -2,6 +2,7 @@
 
 import { useConnection, useChainId, useChains, useReadContract, useReadContracts } from "wagmi";
 
+import { useFaucetVariant } from "@/hooks/useFaucetVariant";
 import { ERC20_ABI, FAUCET_ABI, getFaucetConfig } from "@/lib/contracts";
 
 /** Faucet status and user eligibility data */
@@ -55,8 +56,10 @@ export function useFaucetStatus(): FaucetStatus {
   const chainId = useChainId();
   const chains = useChains();
 
+  const variant = useFaucetVariant();
+
   const chainName = chains.find((c) => c.id === chainId)?.name ?? "Unknown";
-  const { address: faucetAddress, explorerUrl } = getFaucetConfig(chainId);
+  const { address: faucetAddress, explorerUrl } = getFaucetConfig(chainId, variant);
 
   // First, read the token address from the faucet contract
   const {
