@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Nillion Faucet — a testnet faucet web app for claiming NIL tokens on **L1 (Ethereum Sepolia)** via an on-chain smart contract, or on **L2 (Nillion Testnet)** via a server-side API that sends ETH + NIL. Users switch between L1/L2 using RainbowKit's built-in chain switcher.
+Nillion Faucet — a testnet faucet web app for claiming NIL tokens on **L1 (Ethereum Sepolia)** via on-chain smart contracts, or on **L2 (Nillion Testnet)** via a server-side API that sends ETH + NIL.
+
+The landing page offers the **two Sepolia faucets** — Blind Computer and Blacklight L1, which are two different NIL tokens on one chain. **L2 is still live but no longer advertised** (`?chain=L2`); see "Two faucets on one chain" below for how a token is selected, and note that the selector chooses a token, not a network.
 
 ## Commands
 
@@ -61,7 +63,11 @@ Because both are on chain 11155111, `chainId` cannot distinguish them, and the a
 
 Everything downstream is automatic — the UI reads `TOKEN`, `dripAmount` and `cooldownSeconds` _from the contract_, so pointing at a different faucet gets the right token, drip and cooldown with no further wiring.
 
-**It is deliberately absent from the landing page.** No `NetworkCard` renders it; the URL is the only way in. If its env var is unset the card says "Faucet not configured" rather than falling back to the other faucet — a silent fallback between two different NILs is the one failure mode worth refusing outright.
+If its env var is unset the card says "Faucet not configured" rather than falling back to the other faucet — a silent fallback between two different NILs is the one failure mode worth refusing outright.
+
+**The landing page now offers the two SEPOLIA faucets, not two chains:** "Blind Computer" (`?chain=L1`, the original NIL) and "Blacklight L1" (`?chain=blacklight`). Both are Sepolia, so the cards pick a _token_, and the in-page label repeats the card's wording so the two screens cannot disagree about which faucet you are on.
+
+**`?chain=L2` is no longer advertised, but is fully live.** Only the `NetworkCard` was removed — the route, the chain id, `CHAIN_PARAM_MAP`, the server-side API and the Redis rate limiting are all untouched, and `networkLabelFor` still special-cases it. Links already in circulation keep working; removing the param as well would have broken them.
 
 **L2 flow:** Client POSTs wallet address → server checks Redis cooldown → server sends ETH transfer then ERC-20 transfer sequentially (avoids nonce collisions) → marks cooldown in Redis → returns both tx hashes.
 

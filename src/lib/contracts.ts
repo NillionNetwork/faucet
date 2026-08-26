@@ -105,7 +105,10 @@ const SEPOLIA_CHAIN_ID = 11155111;
  */
 export type FaucetVariant = "blacklight";
 
-/** URL value that selects the Blacklight faucet: `?chain=blacklight`. Deliberately not on the landing page. */
+/**
+ * URL value that selects the Blacklight faucet: `?chain=blacklight`. Offered on the landing page
+ * alongside the Blind Computer faucet — the two cards are the two SEPOLIA tokens, not two chains.
+ */
 export const BLACKLIGHT_CHAIN_PARAM = "blacklight";
 
 function isHexAddress(value: string | undefined): value is `0x${string}` {

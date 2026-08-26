@@ -79,23 +79,25 @@ function ChainSelector({ onSelect }: ChainSelectorProps): React.JSX.Element {
 
         {/* Subtitle */}
         <p className="animate-selector-fade-up mt-3 text-[15px] text-indigo-200/50" style={{ animationDelay: "140ms" }}>
-          Choose a network below to continue your faucet flow.
+          Choose which NIL you need to continue your faucet flow.
         </p>
 
-        {/* Cards grid */}
+        {/* Cards grid.
+            The two SEPOLIA faucets, which are two different NIL tokens on one chain — the card
+            picks which, not which network. */}
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <NetworkCard
-            label="Sepolia L1"
-            sublabel="Ethereum Testnet"
-            description="Get NIL on Nillion's L1"
+            label="Blind Computer"
+            sublabel="Ethereum Sepolia"
+            description="Get NIL for Nillion's Blind Computer"
             onClick={() => onSelect("L1")}
             delay="220ms"
           />
           <NetworkCard
-            label="Nillion L2"
-            sublabel="Nillion Testnet"
-            description="Get NIL and ETH on Nillion's L2"
-            onClick={() => onSelect("L2")}
+            label="Blacklight L1"
+            sublabel="Ethereum Sepolia"
+            description="Get NIL for Blacklight L1"
+            onClick={() => onSelect(BLACKLIGHT_CHAIN_PARAM)}
             delay="320ms"
           />
         </div>
@@ -111,13 +113,12 @@ interface FaucetPageProps {
 
 /**
  * Two faucets now sit on Sepolia, so "Ethereum Sepolia" alone no longer says which one you are
- * looking at. Naming the Blacklight variant is the cheapest guard against claiming from the
- * wrong token and concluding the faucet is broken.
+ * looking at. Both labels name the PRODUCT and then the chain
  */
 function networkLabelFor(chainParam: string): string {
   if (chainParam === "L2") return "Nillion Testnet";
   if (chainParam.toLowerCase() === BLACKLIGHT_CHAIN_PARAM) return "Blacklight L1 · Ethereum Sepolia";
-  return "Ethereum Sepolia";
+  return "Blind Computer · Ethereum Sepolia";
 }
 
 function FaucetPage({ chainParam, onBack }: FaucetPageProps): React.JSX.Element {
@@ -150,7 +151,7 @@ function FaucetPage({ chainParam, onBack }: FaucetPageProps): React.JSX.Element 
           className="inline-flex items-center gap-1.5 text-sm text-indigo-400/60 hover:text-indigo-300 transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Switch network
+          Switch token
         </button>
       </div>
     </main>
