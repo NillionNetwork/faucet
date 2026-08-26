@@ -151,7 +151,7 @@ function FaucetPage({ chainParam, onBack }: FaucetPageProps): React.JSX.Element 
           className="inline-flex items-center gap-1.5 text-sm text-indigo-400/60 hover:text-indigo-300 transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          Switch network
+          Switch token
         </button>
       </div>
     </main>
