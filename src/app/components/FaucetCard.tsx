@@ -314,6 +314,27 @@ export function FaucetCard(): React.JSX.Element {
   // the other faucets would promise a payout nothing can make.
   const canPasteAddress = variant === "blacklight";
 
+  // Rendered in BOTH connection states, on purpose.
+  //
+  // It used to live only in the not-connected branch, which had two faults. Wallet state
+  // rehydrates from localStorage a beat after mount, so anyone with a previously-connected
+  // wallet watched this section appear and then vanish as `isConnected` flipped — a visible
+  // flash of the new UI reverting to the old. And more seriously, they never got the feature
+  // at all: funding an agent's address has nothing to do with whether YOUR wallet is
+  // connected, but only disconnected visitors could see the field.
+  const pasteSection = canPasteAddress ? (
+    <>
+      <div className="flex items-center gap-3">
+        <span className="h-px flex-1 bg-indigo-400/15" />
+        <span className="text-[11px] uppercase tracking-wider text-muted-foreground">
+          {isConnected ? "or send to another address" : "or"}
+        </span>
+        <span className="h-px flex-1 bg-indigo-400/15" />
+      </div>
+      <PasteAddressClaim />
+    </>
+  ) : null;
+
   if (!isConnected) {
     return (
       <Card className="w-full px-6 py-8">
@@ -332,17 +353,7 @@ export function FaucetCard(): React.JSX.Element {
               </Button>
             )}
           </ConnectButton.Custom>
-
-          {canPasteAddress && (
-            <>
-              <div className="flex items-center gap-3">
-                <span className="h-px flex-1 bg-indigo-400/15" />
-                <span className="text-[11px] uppercase tracking-wider text-muted-foreground">or</span>
-                <span className="h-px flex-1 bg-indigo-400/15" />
-              </div>
-              <PasteAddressClaim />
-            </>
-          )}
+          {pasteSection}
         </CardContent>
       </Card>
     );
@@ -352,6 +363,7 @@ export function FaucetCard(): React.JSX.Element {
     <Card className="w-full px-6 py-8">
       <CardContent className="flex flex-col gap-3">
         {isL2 ? <L2FaucetCardContent /> : <FaucetCardContent />}
+        {pasteSection}
       </CardContent>
     </Card>
   );
