@@ -10,10 +10,12 @@ import { Card, CardContent, CardDescription, CardHeader } from "@/components/ui/
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useClaim } from "@/hooks/useClaim";
 import { useFaucetStatus } from "@/hooks/useFaucetStatus";
+import { useFaucetVariant } from "@/hooks/useFaucetVariant";
 import { ANVIL_CHAIN_ID, NILLION_TESTNET_CHAIN_ID } from "@/lib/contracts";
 import { formatNilAmount, formatTimeRemaining, truncateAddress } from "@/lib/format";
 
 import { L2FaucetCardContent } from "./L2FaucetContent";
+import { PasteAddressClaim } from "./PasteAddressClaim";
 
 const ClaimButton = memo(function ClaimButton(): React.JSX.Element {
   const chainId = useChainId();
@@ -306,15 +308,23 @@ function FaucetCardContent(): React.JSX.Element {
 export function FaucetCard(): React.JSX.Element {
   const { isConnected } = useConnection();
   const chainId = useChainId();
+  const variant = useFaucetVariant();
   const isL2 = chainId === NILLION_TESTNET_CHAIN_ID;
+  // Only the Blacklight relayer exists, and it holds only Blacklight NIL — offering the field on
+  // the other faucets would promise a payout nothing can make.
+  const canPasteAddress = variant === "blacklight";
 
   if (!isConnected) {
     return (
       <Card className="w-full px-6 py-8">
         <CardHeader>
-          <CardDescription>Connect your wallet to claim testnet NIL tokens</CardDescription>
+          <CardDescription>
+            {canPasteAddress
+              ? "Connect a wallet to claim, or send NIL straight to an address"
+              : "Connect your wallet to claim testnet NIL tokens"}
+          </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-col gap-4">
           <ConnectButton.Custom>
             {({ openConnectModal }): React.JSX.Element => (
               <Button onClick={openConnectModal} className="w-full">
@@ -322,6 +332,17 @@ export function FaucetCard(): React.JSX.Element {
               </Button>
             )}
           </ConnectButton.Custom>
+
+          {canPasteAddress && (
+            <>
+              <div className="flex items-center gap-3">
+                <span className="h-px flex-1 bg-indigo-400/15" />
+                <span className="text-[11px] uppercase tracking-wider text-muted-foreground">or</span>
+                <span className="h-px flex-1 bg-indigo-400/15" />
+              </div>
+              <PasteAddressClaim />
+            </>
+          )}
         </CardContent>
       </Card>
     );
