@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, ExternalLink, Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { isAddress } from "viem";
 
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,29 @@ const SEPOLIA_EXPLORER = "https://sepolia.etherscan.io";
  */
 export function PasteAddressClaim(): React.JSX.Element {
   const [address, setAddress] = useState("");
+  const [fromLink, setFromLink] = useState(false);
   const { claim, status, nilTxHash, error, reset } = useBlacklightRelayClaim();
+
+  // `?address=0x…` prefills the field, so an agent can hand its operator ONE link instead of a
+  // link plus an address to copy across. That turns "open, copy, paste, click" into "click,
+  // click" and removes the transcription-error class entirely.
+  //
+  // Read in an effect rather than as lazy initial state: the server renders this with an empty
+  // field and reading `window` during render would produce a hydration mismatch.
+  //
+  // It does NOT auto-submit, deliberately. A URL that dispenses on load is fired by anything
+  // that fetches it — a Slack or Discord unfurler would drain the faucet just from someone
+  // pasting the link into a channel. The human's click is the only sybil barrier this endpoint
+  // has, so it stays a human click.
+  useEffect(() => {
+    const param = new URLSearchParams(window.location.search).get("address")?.trim();
+    if (!param) return;
+    // Prefilled even when malformed, so the operator SEES what the link asked for and the
+    // existing validation can say why it is wrong. Silently dropping it would look like the
+    // link simply did not work.
+    setAddress(param);
+    setFromLink(true);
+  }, []);
 
   const trimmed = address.trim();
   const valid = isAddress(trimmed);
@@ -83,6 +105,12 @@ export function PasteAddressClaim(): React.JSX.Element {
         className="w-full rounded-md border border-indigo-400/20 bg-indigo-950/40 px-3 py-2 font-mono text-sm text-white placeholder:text-indigo-300/30 focus:border-indigo-400/50 focus:outline-none"
       />
       {showInvalid && <p className="text-xs text-destructive">That is not a valid Ethereum address.</p>}
+      {/* A link can carry any address, including one the sender chose. Low stakes — the tokens
+          are valueless and it costs the clicker one daily claim — but the address should be
+          visible and attributed rather than silently trusted. */}
+      {fromLink && !showInvalid && (
+        <p className="text-[11px] text-muted-foreground">Address filled in from the link — check it looks right.</p>
+      )}
       {error && status === "error" && <p className="text-xs text-destructive">{error.message}</p>}
 
       <Button type="submit" disabled={!valid || status === "loading"} className="w-full">
