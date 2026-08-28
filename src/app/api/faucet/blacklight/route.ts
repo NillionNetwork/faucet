@@ -38,6 +38,28 @@ function jsonError(error: string, status: number, retryAfterMs?: number): NextRe
   return NextResponse.json({ ok: false, error, retryAfterMs }, { status });
 }
 
+/**
+ * Strip URLs before anything reaches a log. An RPC URL can carry an API key in its path, and
+ * viem renders the endpoint it tried inside transport errors — so logging a raw error message is
+ * how a key ends up in a log aggregator.
+ */
+function redact(message: string): string {
+  return message.replace(/https?:\/\/\S+/g, "<url>");
+}
+
+/**
+ * Log the cause server-side, tagged with the stage that failed.
+ *
+ * The client deliberately gets an opaque "internal error": whether the relayer is misconfigured
+ * is not a stranger's business. But WE need to know, and without this the two 500 paths below are
+ * indistinguishable in production — a missing env var and a dead Redis look identical, which is
+ * exactly the position this route was in on its first deploy.
+ */
+function logFailure(stage: string, error: unknown): void {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(`[faucet/blacklight] ${stage} failed: ${redact(message)}`);
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
   let body: { address?: string };
   try {
@@ -58,7 +80,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (!cooldown.allowed) {
       return jsonError("cooldown active", 429, cooldown.retryAfterMs);
     }
-  } catch {
+  } catch (error) {
+    // Almost always REDIS_URL missing or unreachable for this environment. Vercel env vars are
+    // per-environment, so a var set only on Production leaves Preview deploys throwing here.
+    logFailure("cooldown check (redis)", error);
     return jsonError("internal error", 500);
   }
 
@@ -75,6 +100,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return jsonError("out of funds", 503);
     }
 
+    // Missing BLACKLIGHT_FAUCET_PRIVATE_KEY / BLACKLIGHT_NIL_TOKEN_ADDRESS surfaces here, as
+    // does any RPC or transaction failure.
+    logFailure("payout", error);
     return jsonError("internal error", 500);
   }
 }
