@@ -52,7 +52,7 @@ The landing page offers the **two Sepolia faucets** — Blind Computer and Black
 
 **L1 contract architecture:** `NILFaucet` wraps an immutable ERC-20 `TOKEN` reference. `canClaim(address)` returns `(bool, string)` where the string is a reason code: `PAUSED`, `DRIP_0`, `EMPTY`, `COOLDOWN`. The frontend maps these to UI states directly.
 
-**Two faucets on one chain (the `variant` concept):** Sepolia hosts the original NIL faucet **and** one for Blacklight L1's NIL — a different ERC-20 at a different address, deployed 2026-08-25. `TOKEN` is immutable, so one contract cannot serve both tokens; each needs its own `NILFaucet` instance.
+**Two faucets on one chain (the `variant` concept):** Sepolia hosts the original NIL faucet **and** one for Blacklight L1's NIL — a different ERC-20 at a different address: the staging stack's NIL `0x38E6D66fCbe15B7D68aa2E25Ba065A6c6da0c367`, deployed 2026-09-29, which the Blacklight L1 testnet webapp uses. It replaced the 2026-08-25 token (`0xA7526a2ABB3D01BD21B3ac59B9201cC018560Dfd`), now deprecated. `TOKEN` is immutable, so one contract cannot serve both tokens; each needs its own `NILFaucet` instance.
 
 Because both are on chain 11155111, `chainId` cannot distinguish them, and the app was keyed on `chainId` alone. A **variant** does the disambiguating:
 
@@ -89,7 +89,7 @@ See `.env.example`. Key vars:
 
 - `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` — Required for WalletConnect
 - `NEXT_PUBLIC_FAUCET_ADDRESS_SEPOLIA` / `NEXT_PUBLIC_FAUCET_ADDRESS_ANVIL` — Contract addresses per chain
-- `NEXT_PUBLIC_FAUCET_ADDRESS_SEPOLIA_BLACKLIGHT` — the Blacklight L1 NIL faucet on Sepolia, reached only via `?chain=blacklight`. Needs its own deployed `NILFaucet` (drip 20 NIL = `20000000`, cooldown `86400`), funded with that token
+- `NEXT_PUBLIC_FAUCET_ADDRESS_SEPOLIA_BLACKLIGHT` — the Blacklight L1 NIL faucet on Sepolia, reached only via `?chain=blacklight`. Needs its own deployed `NILFaucet` (drip 20 NIL = `20000000`, cooldown `86400`), funded with that token. Moving to a new token means deploying a new `NILFaucet` and pointing this at it
 - `NEXT_PUBLIC_SEPOLIA_RPC_URL` / `NEXT_PUBLIC_ANVIL_RPC_URL` — Optional RPC overrides
 
 **L2 (server-side):**
