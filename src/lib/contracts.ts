@@ -1,12 +1,6 @@
 /** Chain ID for local Anvil development network */
 export const ANVIL_CHAIN_ID = 31337;
 
-/** Chain ID for Nillion Testnet (L2) */
-export const NILLION_TESTNET_CHAIN_ID = 78651;
-
-/** Nillion Testnet RPC URL */
-export const NILLION_TESTNET_RPC_URL = "https://rpc.testnet.nillion.network";
-
 export const FAUCET_ABI = [
   {
     type: "function",
@@ -138,7 +132,6 @@ function getExplorerUrl(chainId: number): string {
   // Import chains lazily to avoid circular deps at module level
   const explorerUrls: Record<number, string> = {
     [SEPOLIA_CHAIN_ID]: "https://sepolia.etherscan.io",
-    [NILLION_TESTNET_CHAIN_ID]: "https://explorer.testnet.nillion.network",
     [ANVIL_CHAIN_ID]: "http://localhost:8545",
   };
   return explorerUrls[chainId] || "https://etherscan.io";

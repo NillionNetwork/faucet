@@ -11,10 +11,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useClaim } from "@/hooks/useClaim";
 import { useFaucetStatus } from "@/hooks/useFaucetStatus";
 import { useFaucetVariant } from "@/hooks/useFaucetVariant";
-import { ANVIL_CHAIN_ID, NILLION_TESTNET_CHAIN_ID } from "@/lib/contracts";
+import { ANVIL_CHAIN_ID } from "@/lib/contracts";
 import { formatNilAmount, formatTimeRemaining, truncateAddress } from "@/lib/format";
 
-import { L2FaucetCardContent } from "./L2FaucetContent";
 import { PasteAddressClaim } from "./PasteAddressClaim";
 
 const ClaimButton = memo(function ClaimButton(): React.JSX.Element {
@@ -307,9 +306,7 @@ function FaucetCardContent(): React.JSX.Element {
 
 export function FaucetCard(): React.JSX.Element {
   const { isConnected } = useConnection();
-  const chainId = useChainId();
   const variant = useFaucetVariant();
-  const isL2 = chainId === NILLION_TESTNET_CHAIN_ID;
   // Only the Blacklight relayer exists, and it holds only Blacklight NIL — offering the field on
   // the other faucets would promise a payout nothing can make.
   const canPasteAddress = variant === "blacklight";
@@ -362,7 +359,7 @@ export function FaucetCard(): React.JSX.Element {
   return (
     <Card className="w-full px-6 py-8">
       <CardContent className="flex flex-col gap-3">
-        {isL2 ? <L2FaucetCardContent /> : <FaucetCardContent />}
+        <FaucetCardContent />
         {pasteSection}
       </CardContent>
     </Card>
