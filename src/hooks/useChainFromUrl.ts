@@ -1,13 +1,12 @@
 import { useEffect } from "react";
 import { useChainId, useSwitchChain } from "wagmi";
 
-import { BLACKLIGHT_CHAIN_PARAM, NILLION_TESTNET_CHAIN_ID } from "@/lib/contracts";
+import { BLACKLIGHT_CHAIN_PARAM } from "@/lib/contracts";
 
 const SEPOLIA_CHAIN_ID = 11155111;
 
 const CHAIN_PARAM_MAP: Record<string, number> = {
   l1: SEPOLIA_CHAIN_ID,
-  l2: NILLION_TESTNET_CHAIN_ID,
   [BLACKLIGHT_CHAIN_PARAM]: SEPOLIA_CHAIN_ID,
 };
 

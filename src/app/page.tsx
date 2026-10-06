@@ -116,7 +116,6 @@ interface FaucetPageProps {
  * looking at. Both labels name the PRODUCT and then the chain
  */
 function networkLabelFor(chainParam: string): string {
-  if (chainParam === "L2") return "Nillion Testnet";
   if (chainParam.toLowerCase() === BLACKLIGHT_CHAIN_PARAM) return "Blacklight L1 · Ethereum Sepolia";
   return "Blind Computer · Ethereum Sepolia";
 }

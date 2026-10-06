@@ -1,13 +1,10 @@
-import { getRedisClient } from "@/lib/l2/redis";
+import { getRedisClient } from "@/lib/redis";
 
 const DEFAULT_COOLDOWN_MS = 24 * 60 * 60 * 1000;
 
 /**
- * A PREFIX OF ITS OWN, not the L2 one.
- *
- * The L2 limiter keys on `nillion:faucet:l2:cooldown`. Reusing it would mean claiming Blacklight
- * NIL locks you out of the Blind Computer faucet for 24 hours and vice versa — two unrelated
- * faucets sharing one budget, which reads as a bug to anyone who hits it.
+ * A prefix of its own, scoped to this faucet. A shared prefix would let a claim on one faucet
+ * lock you out of another — unrelated faucets sharing one budget, which reads as a bug.
  */
 const KEY_PREFIX = "nillion:faucet:blacklight:cooldown";
 

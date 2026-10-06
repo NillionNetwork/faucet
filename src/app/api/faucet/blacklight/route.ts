@@ -27,8 +27,7 @@ function getIp(request: NextRequest): string {
   if (!forwardedFor) return "unknown";
 
   // Leftmost entry is the client as seen by the first proxy. Trusting it means a client can
-  // spoof the header, but that is already true of the L2 route and the cooldown is not a
-  // security boundary — it is friction. The /64 bucketing in bucketIp() closes the cheap,
+  // spoof the header, but the cooldown is not a security boundary — it is friction. The /64 bucketing in bucketIp() closes the cheap,
   // non-spoofing version of the same bypass.
   const first = forwardedFor.split(",")[0]?.trim();
   return first || "unknown";
